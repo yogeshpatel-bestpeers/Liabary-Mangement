@@ -1,0 +1,74 @@
+Create a Library Management Application APIs (FastAPI, postgres database):
+
+NOTE: Use Black and isort before pushing the code.
+
+Create daily task list and complete that feature(task) and create PR to dev branch on daily basis.
+
+Git Mangement:
+  1] Choose a task (Manage an excel sheet for this and share its link)
+  2] Create a branch (example: task01-model-creation)
+  3] Create PR to dev branch 
+  4] Once PR is approved loop through 1-3
+
+
+Task List for Library Management System APIs
+
+1. Create Models:
+   - Implement models for Author, Category, Book, Course, Student, IssuedBook, and Fine.
+
+2. Author Management:
+   - Create CRUD APIs for Author (Create, Retrieve, Update, Delete).
+   - Create an API to get all authors with pagination.
+
+3. Category Management:
+   - Create CRUD APIs for Category.
+   - Create an API to get all categories with pagination.
+
+4. Book Management:
+   - Create CRUD APIs for Book (only admins can create/update/delete).
+   - Create an API to get all books, with optional filters for author and category.
+   - Implement pagination for the books API.
+
+5. Course Management:
+   - Create CRUD APIs for Course.
+   - Create an API to get all courses with pagination.
+
+6. Student Management:
+   - Create APIs for student registration (SignUp) and retrieval.
+   - Create an API to update student information.
+   - Create an API to get all students with pagination.
+
+7. Issued Books Management:
+   - Create an API to issue a book to a student (check availability).
+   - Create an API to return a book (mark as returned).
+   - Create an API to get all issued books, filtered by student or book.
+   - Implement pagination for issued books API.
+
+8. Fine Management:
+   - Create CRUD APIs for Fine.
+   - Create an API to retrieve fines associated with a specific issued book.
+   - Create an API to retrieve all fines for a student with pagination.
+
+9. Authentication:
+   - Implement login, signup, and logout APIs for students using authentication system.
+   - Use Simple JWT for token-based authentication.
+
+10. Search Functionality:
+    - Create an API to search for books, authors, or categories based on keywords.
+
+11. Error Handling:
+    - Implement standardized error handling and validation across all APIs.
+
+
+-pip install FastAPI
+-pip install "fastapi[standard]"
+-pip install sqlalchemy
+-pip install pscycopg2
+
+echo "# Git" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:yogeshpatel-bestpeers/Git.git
+git push -u origin main
