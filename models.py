@@ -1,6 +1,15 @@
-from .database import Base
-from sqlalchemy.orm import Mapped,mapped_column,relationship
-from sqlalchemy import ForeignKey
-from typing import List
-import uuid
-# Author, Category, Book, Course, Student, IssuedBook, and Fine
+from pydantic import BaseModel
+
+class Author_Created(BaseModel):
+  name : str
+
+class Book_Created(BaseModel):
+  name : str
+  quentity : int
+
+class Student_Create(BaseModel):
+  name : str
+
+class Category_Created(BaseModel):
+  name : str
+
