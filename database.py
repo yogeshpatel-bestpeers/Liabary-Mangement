@@ -6,6 +6,13 @@ from dotenv import load_dotenv
 from sqlalchemy import ForeignKey, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column, relationship, sessionmaker
+from sqlalchemy import Enum as sqlEnum
+from enum import Enum
+
+
+class UserRole(str,Enum):
+    ADMIN = "admin"
+    Student = "student"
 
 load_dotenv()
 
@@ -45,7 +52,7 @@ class Category(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(nullable=False)
 
-    books: Mapped[List["Book"]] = relationship("Book", back_populates="category")
+    books: Mapped[List["Book"]] = relationship("Book", back_populates="category",)
 
 
 class Book(Base):
@@ -55,11 +62,13 @@ class Book(Base):
     quantity: Mapped[int] = mapped_column(nullable=False, default=0)
 
     author_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("authors.id"), nullable=False
-    )
+    ForeignKey("authors.id", ondelete='CASCADE'), nullable=False
+)
+
     category_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("categories.id"), nullable=False
+    ForeignKey("categories.id", ondelete='CASCADE'), nullable=False
     )
+
 
     author: Mapped["Author"] = relationship("Author", back_populates="books")
     category: Mapped["Category"] = relationship("Category", back_populates="books")
@@ -68,26 +77,34 @@ class Book(Base):
     )
 
 
-class Student(Base):
-    __tablename__ = "students"
+class User(Base):
+    __tablename__ = "users"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    name: Mapped[str] = mapped_column(nullable=False)
+    email : Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
+    first_name : Mapped[str] = mapped_column( nullable=True)
+    last_name: Mapped[str] = mapped_column( nullable=True)
+    password : Mapped[str] = mapped_column( nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        sqlEnum(UserRole, name="userrole"),
+        nullable=False,
+        default=UserRole.Student,
+    )
 
     issued_books: Mapped[List["IssuedBook"]] = relationship(
-        "IssuedBook", back_populates="student"
+        "IssuedBook", back_populates="user"
     )
 
 
 class IssuedBook(Base):
     __tablename__ = "issuedbooks"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    book_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("books.id"), nullable=False)
-    student_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("students.id"), nullable=False
+    book_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("books.id",ondelete='CASCADE'), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id",ondelete='CASCADE'), nullable=False
     )
 
     book: Mapped["Book"] = relationship("Book", back_populates="issued_books")
-    student: Mapped["Student"] = relationship("Student", back_populates="issued_books")
+    user: Mapped["User"] = relationship("User", back_populates="issued_books")
     fine: Mapped["Fine"] = relationship("Fine", back_populates="issued_book")
 
 
