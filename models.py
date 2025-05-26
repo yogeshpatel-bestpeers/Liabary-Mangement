@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-
+from typing import Optional
+from datetime import datetime
 
 class Author_Created(BaseModel):
   name : str
@@ -20,3 +21,24 @@ class User_Created(BaseModel):
   password : str
 
 
+
+
+class FineBase(BaseModel):
+    amount: float
+    reason: Optional[str]
+    issued_book_id: int
+    student_id: int
+
+class FineCreate(FineBase):
+    pass
+
+class FineUpdate(BaseModel):
+    amount: Optional[float]
+    reason: Optional[str]
+
+class FineOut(FineBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True

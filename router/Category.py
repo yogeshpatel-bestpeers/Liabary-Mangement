@@ -34,11 +34,6 @@ def category_delete(id: str, db: Session = Depends(get_db)):
     category = db.query(database.Category).filter(database.Category.id == id).first()
     if not category:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found")
-
-    books = db.query(database.Book).filter(database.Book.category_id == id).all()
-    for book in books:
-        db.delete(book)
-
     db.delete(category)
     db.commit()
 

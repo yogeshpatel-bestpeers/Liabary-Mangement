@@ -1,13 +1,14 @@
 import os
 import uuid
-from typing import List
+from typing import List,Optional
 
 from dotenv import load_dotenv
-from sqlalchemy import ForeignKey, create_engine
+from sqlalchemy import ForeignKey, create_engine,DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column, relationship, sessionmaker
 from sqlalchemy import Enum as sqlEnum
 from enum import Enum
+from datetime import datetime
 
 
 class UserRole(str,Enum):
@@ -44,7 +45,7 @@ class Author(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(nullable=False)
 
-    books: Mapped[List["Book"]] = relationship("Book", back_populates="author")
+    books: Mapped[List["Book"]] = relationship("Book", back_populates="author",cascade="all, delete")
 
 
 class Category(Base):
@@ -52,7 +53,7 @@ class Category(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(nullable=False)
 
-    books: Mapped[List["Book"]] = relationship("Book", back_populates="category",)
+    books: Mapped[List["Book"]] = relationship("Book", back_populates="category",cascade="all, delete")
 
 
 class Book(Base):
@@ -70,10 +71,10 @@ class Book(Base):
     )
 
 
-    author: Mapped["Author"] = relationship("Author", back_populates="books")
-    category: Mapped["Category"] = relationship("Category", back_populates="books")
+    author: Mapped["Author"] = relationship("Author", back_populates="books",cascade="all, delete")
+    category: Mapped["Category"] = relationship("Category", back_populates="books",cascade="all, delete")
     issued_books: Mapped[List["IssuedBook"]] = relationship(
-        "IssuedBook", back_populates="book"
+        "IssuedBook", back_populates="book",cascade="all, delete"
     )
 
 
@@ -91,21 +92,24 @@ class User(Base):
     )
 
     issued_books: Mapped[List["IssuedBook"]] = relationship(
-        "IssuedBook", back_populates="user"
+        "IssuedBook", back_populates="user",cascade="all, delete"
     )
 
 
 class IssuedBook(Base):
     __tablename__ = "issuedbooks"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    due_date: Mapped[datetime] = mapped_column(DateTime)
+    returned_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     book_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("books.id",ondelete='CASCADE'), nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id",ondelete='CASCADE'), nullable=False
     )
 
-    book: Mapped["Book"] = relationship("Book", back_populates="issued_books")
-    user: Mapped["User"] = relationship("User", back_populates="issued_books")
-    fine: Mapped["Fine"] = relationship("Fine", back_populates="issued_book")
+    book: Mapped["Book"] = relationship("Book", back_populates="issued_books",cascade="all, delete")
+    user: Mapped["User"] = relationship("User", back_populates="issued_books",cascade="all, delete")
+    fine: Mapped["Fine"] = relationship("Fine", back_populates="issued_book",cascade="all, delete")
 
 
 class Fine(Base):
@@ -113,9 +117,9 @@ class Fine(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     amount: Mapped[float] = mapped_column(nullable=False)
     issued_book_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("issuedbooks.id"), nullable=False
+        ForeignKey("issuedbooks.id",ondelete='CASCADE'), nullable=False
     )
 
     issued_book: Mapped["IssuedBook"] = relationship(
-        "IssuedBook", back_populates="fine"
+        "IssuedBook", back_populates="fine",cascade="all, delete"
     )

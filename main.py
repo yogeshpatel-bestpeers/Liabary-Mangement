@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from Library_Management import database
 from Library_Management.database import engine
-from .router import Author,Book,Category,Student
+from .router import Author,Book,Category,Student,Issued_Book
 
 
 
@@ -10,14 +10,11 @@ database.Base.metadata.create_all(engine)
 
 app = FastAPI()
 
-@app.on_event("startup")
-def create_tables():
-  database.Base.metadata.create_all(bind=engine)
-
 app.include_router(Author.author)
 app.include_router(Book.book)
 app.include_router(Category.category)
 app.include_router(Student.user_router)
+app.include_router(Issued_Book.issuedBook)
 
 # alembic revision --autogenerate -m “Description of changes”
 # alembic upgrade head

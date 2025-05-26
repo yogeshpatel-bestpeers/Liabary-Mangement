@@ -65,10 +65,10 @@ async def update_User(
 
 
 @user_router.get("/User/getAll",tags=['User Api'])
-async def showUser(id : str, db: Session = Depends(get_db),):
-    Users = db.query(database.User).filter(database.User.id == id).first()
+async def showUser( db: Session = Depends(get_db),):
+    Users = db.query(database.User).all()
     if not Users:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"No User found"
         )
     return Users
