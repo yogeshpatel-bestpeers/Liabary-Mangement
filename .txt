@@ -13,7 +13,7 @@ Git Mangement:
 
 Task List for Library Management System APIs
 
-1. Create Models:
+1. Create Models: 
    - Implement models for Author, Category, Book, Course, Student, IssuedBook, and Fine.
 
 2. Author Management:
@@ -72,3 +72,8 @@ git commit -m "first commit"
 git branch -M main
 git remote add origin git@github.com:yogeshpatel-bestpeers/Git.git
 git push -u origin main
+
+alembic init alembic
+
+alembic revision --autogenerate -m “Description of changes”
+alembic upgrade head

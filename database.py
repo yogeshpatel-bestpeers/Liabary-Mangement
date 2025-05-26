@@ -83,7 +83,7 @@ class User(Base):
     email : Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
     first_name : Mapped[str] = mapped_column( nullable=True)
     last_name: Mapped[str] = mapped_column( nullable=True)
-    password : Mapped[str] = mapped_column( nullable=False)
+    passwords : Mapped[str] = mapped_column( nullable=False,server_default="")
     role: Mapped[UserRole] = mapped_column(
         sqlEnum(UserRole, name="userrole"),
         nullable=False,
