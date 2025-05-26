@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from Library_Management.database import Fine, get_db
-from Library_Management.models import FineCreate, FineUpdate
+from Library_Management.models import Fine
+from Library_Management.database import get_db
+from Library_Management.schema import FineCreate, FineUpdate
 
 fine = APIRouter()
 

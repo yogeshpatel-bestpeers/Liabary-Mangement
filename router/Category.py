@@ -2,15 +2,16 @@ from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
-from Library_Management import database, models
+from Library_Management import models, schema
 from Library_Management.database import get_db
+from Library_Management import models,schema
 
 category = APIRouter()
 
 
 @category.post("/category/create", tags=["Category Api"])
-def category_create(model: models.Category_Created, db: Session = Depends(get_db)):
-    new_category = database.Category(**model.__dict__)
+def category_create(model: schema.Category_Created, db: Session = Depends(get_db)):
+    new_category = models.Category(**model.__dict__)
 
     db.add(new_category)
     db.commit()
@@ -22,7 +23,7 @@ def category_create(model: models.Category_Created, db: Session = Depends(get_db
 @category.get("/category/get/", tags=["Category Api"])
 def auther_get(db: Session = Depends(get_db)):
     category = (
-        db.query(database.Category).options(joinedload(database.Category.books)).all()
+        db.query(models.Category).options(joinedload(models.Category.books)).all()
     )
 
     if not category:
@@ -35,7 +36,7 @@ def auther_get(db: Session = Depends(get_db)):
 
 @category.delete("/category/delete", tags=["Category Api"])
 def category_delete(id: str, db: Session = Depends(get_db)):
-    category = db.query(database.Category).filter(database.Category.id == id).first()
+    category = db.query(models.Category).filter(models.Category.id == id).first()
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
@@ -48,9 +49,9 @@ def category_delete(id: str, db: Session = Depends(get_db)):
 
 @category.put("/category/update/{id}", tags=["Category Api"])
 def category_update(
-    id: str, model: models.Category_Created, db: Session = Depends(get_db)
+    id: str, model: schema.Category_Created, db: Session = Depends(get_db)
 ):
-    category = db.query(database.Category).filter(database.Category.id == id)
+    category = db.query(models.Category).filter(models.Category.id == id)
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"

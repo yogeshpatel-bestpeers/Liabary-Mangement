@@ -2,15 +2,15 @@ from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
-from Library_Management import database, models
+from Library_Management import models, schema
 from Library_Management.database import get_db
-
+from Library_Management import schema,models
 book = APIRouter()
 
 
 @book.post("/book/create", tags=["Book Api"])
-def book_create(model: models.Book_Created, db: Session = Depends(get_db)):
-    new_book = database.Book(**model.__dict__)
+def book_create(model: schema.Book_Created, db: Session = Depends(get_db)):
+    new_book = models.Book(**model.__dict__)
 
     db.add(new_book)
     db.commit()
@@ -22,8 +22,8 @@ def book_create(model: models.Book_Created, db: Session = Depends(get_db)):
 @book.get("/book/get/", tags=["Book Api"])
 def auther_get(db: Session = Depends(get_db)):
     book = (
-        db.query(database.Book)
-        .options(joinedload(database.Book.category), joinedload(database.Book.author))
+        db.query(models.Book)
+        .options(joinedload(models.Book.category), joinedload(models.Book.author))
         .all()
     )
 
@@ -37,7 +37,7 @@ def auther_get(db: Session = Depends(get_db)):
 
 @book.delete("/book/delete", tags=["Book Api"])
 def book_delete(id: str, db: Session = Depends(get_db)):
-    book = db.query(database.Book).filter(database.Book.id == id).first()
+    book = db.query(models.Book).filter(models.Book.id == id).first()
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Book Not Found"
@@ -48,8 +48,8 @@ def book_delete(id: str, db: Session = Depends(get_db)):
 
 
 @book.put("/book/update/{id}", tags=["Book Api"])
-def book_update(id: str, model: models.Book_Created, db: Session = Depends(get_db)):
-    book = db.query(database.Book).filter(database.Book.id == id)
+def book_update(id: str, model: schema.Book_Created, db: Session = Depends(get_db)):
+    book = db.query(models.Book).filter(models.Book.id == id)
     if not book:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Book Not Found"

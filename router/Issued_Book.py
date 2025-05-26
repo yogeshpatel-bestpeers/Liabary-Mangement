@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from Library_Management.database import Book, IssuedBook, get_db
+from Library_Management.database import get_db
+from Library_Management.models import IssuedBook,Book
 
 issuedBook = APIRouter()    
 
