@@ -2,9 +2,8 @@ from fastapi import FastAPI
 
 from Library_Management import database
 from Library_Management.database import engine
-from .router import Author,Book,Category,Student,Issued_Book
 
-
+from .router import Author, Book, Category, Issued_Book, Student
 
 database.Base.metadata.create_all(engine)
 
