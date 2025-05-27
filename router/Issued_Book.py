@@ -1,25 +1,36 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 
 from Library_Management.database import get_db
 from Library_Management.models import IssuedBook,Book
+from Library_Management.utils import user_required,admin_required
 
 issuedBook = APIRouter()    
 
 
+@issuedBook.get("/admin/get/issuedBook", tags=["Admin Api"])
+def get__issued_books(db: Session = Depends(get_db),user =admin_required):
+    return db.query(IssuedBook).options(joinedload(IssuedBook.user),joinedload(IssuedBook.fine)).filter(IssuedBook.returned_date == None).all()
+
+
+
 @issuedBook.get("/get/issuedBook", tags=["Issued Books Management"])
-def get_current_issued_books(db: Session = Depends(get_db)):
-    return db.query(IssuedBook).filter(IssuedBook.returned_date == None).all()
+def get_current_issued_books(db: Session = Depends(get_db),user =user_required):
+    book = db.query(IssuedBook).options(joinedload(IssuedBook.fine)).filter(IssuedBook.returned_date == None , IssuedBook.id == user.id).all()
+    if not book:
+        return {'detail' : 'No Book Issued'}
+    return  book
+    
 
 
 @issuedBook.post(
-    "/book/issue/{student_id}/{book_id}",
+    "/book/issue/{book_id}",
     status_code=status.HTTP_201_CREATED,
     tags=["Issued Books Management"],
 )
-def issued_book(student_id: str, book_id: str, db: Session = Depends(get_db)):
+def issued_book( book_id: str, db: Session = Depends(get_db),user =user_required):
     due_date = datetime.now() + timedelta(days=14)
 
     book = db.query(Book).filter(Book.id == book_id).first()
@@ -30,7 +41,7 @@ def issued_book(student_id: str, book_id: str, db: Session = Depends(get_db)):
 
     issued_book = (
         db.query(IssuedBook)
-        .filter(IssuedBook.book_id == book_id, IssuedBook.user_id == student_id)
+        .filter(IssuedBook.book_id == book_id, IssuedBook.user_id == user.id)
         .first()
     )
 
@@ -43,7 +54,7 @@ def issued_book(student_id: str, book_id: str, db: Session = Depends(get_db)):
             detail="Book out of stock", status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    book_issued = IssuedBook(book_id=book_id, user_id=student_id, due_date=due_date)
+    book_issued = IssuedBook(book_id=book_id, user_id=user.id, due_date=due_date)
     book.quantity -= 1
     db.add(book_issued)
     db.commit()
@@ -52,13 +63,13 @@ def issued_book(student_id: str, book_id: str, db: Session = Depends(get_db)):
 
 
 @issuedBook.delete("/book/return/{book_id}", tags=["Issued Books Management"])
-def return_book(student_id: str, book_id: str, db: Session = Depends(get_db)):
+def return_book( book_id: str, db: Session = Depends(get_db),user = user_required):
 
     issued_book = (
         db.query(IssuedBook)
         .filter(
             IssuedBook.book_id == book_id,
-            IssuedBook.user_id == student_id,
+            IssuedBook.user_id == user.id,
             IssuedBook.returned_date == None,
         )
         .first()

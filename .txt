@@ -64,7 +64,9 @@ Task List for Library Management System APIs
 -pip install "fastapi[standard]"
 -pip install sqlalchemy
 -pip install pscycopg2
-
+- pip install JWT
+- pip install pyJwt
+   
 echo "# Git" >> README.md
 git init
 git add README.md

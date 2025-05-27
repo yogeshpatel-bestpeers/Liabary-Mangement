@@ -1,15 +1,16 @@
-import uuid
-from datetime import datetime
-from enum import Enum
-from typing import List, Optional
 
-from sqlalchemy import DateTime
-from sqlalchemy import Enum as sqlEnum
-from sqlalchemy import ForeignKey, create_engine
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, mapped_column, relationship, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
-from .utils import DATABASE_URL
+load_dotenv()
+
+db_password = os.getenv("DB_PASSWORD")
+db_user = os.getenv("DB_USER")
+db_name = os.getenv("DB_NAME")
+DATABASE_URL = f"postgresql://{db_user}:{db_password}@localhost/{db_name}"
 
 engine = create_engine(DATABASE_URL)
 

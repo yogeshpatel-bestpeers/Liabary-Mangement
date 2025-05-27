@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session, joinedload
 
 from Library_Management import models, schema
 from Library_Management.database import get_db
-from Library_Management import models,schema
+from Library_Management.utils import admin_required
 
 category = APIRouter()
 
 
 @category.post("/category/create", tags=["Category Api"])
-def category_create(model: schema.Category_Created, db: Session = Depends(get_db)):
+def category_create(model: schema.Category_Created, db: Session = Depends(get_db),user =admin_required):
     new_category = models.Category(**model.__dict__)
 
     db.add(new_category)
@@ -21,7 +21,7 @@ def category_create(model: schema.Category_Created, db: Session = Depends(get_db
 
 
 @category.get("/category/get/", tags=["Category Api"])
-def auther_get(db: Session = Depends(get_db)):
+def auther_get(db: Session = Depends(get_db),user =admin_required):
     category = (
         db.query(models.Category).options(joinedload(models.Category.books)).all()
     )
@@ -35,7 +35,7 @@ def auther_get(db: Session = Depends(get_db)):
 
 
 @category.delete("/category/delete", tags=["Category Api"])
-def category_delete(id: str, db: Session = Depends(get_db)):
+def category_delete(id: str, db: Session = Depends(get_db),user =admin_required):
     category = db.query(models.Category).filter(models.Category.id == id).first()
     if not category:
         raise HTTPException(
@@ -49,7 +49,7 @@ def category_delete(id: str, db: Session = Depends(get_db)):
 
 @category.put("/category/update/{id}", tags=["Category Api"])
 def category_update(
-    id: str, model: schema.Category_Created, db: Session = Depends(get_db)
+    id: str, model: schema.Category_Created, db: Session = Depends(get_db),user =admin_required
 ):
     category = db.query(models.Category).filter(models.Category.id == id)
     if not category:
