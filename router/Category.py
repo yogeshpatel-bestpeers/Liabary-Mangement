@@ -10,7 +10,9 @@ category = APIRouter()
 
 
 @category.post("/category/create", tags=["Category Api"])
-def category_create(model: schema.Category_Created, db: Session = Depends(get_db),user =admin_required):
+def category_create(
+    model: schema.Category_Created, db: Session = Depends(get_db), user=admin_required
+):
     new_category = models.Category(**model.__dict__)
 
     db.add(new_category)
@@ -21,7 +23,7 @@ def category_create(model: schema.Category_Created, db: Session = Depends(get_db
 
 
 @category.get("/category/get/", tags=["Category Api"])
-def auther_get(db: Session = Depends(get_db),user =admin_required):
+def auther_get(db: Session = Depends(get_db), user=admin_required):
     category = (
         db.query(models.Category).options(joinedload(models.Category.books)).all()
     )
@@ -35,7 +37,7 @@ def auther_get(db: Session = Depends(get_db),user =admin_required):
 
 
 @category.delete("/category/delete", tags=["Category Api"])
-def category_delete(id: str, db: Session = Depends(get_db),user =admin_required):
+def category_delete(id: str, db: Session = Depends(get_db), user=admin_required):
     category = db.query(models.Category).filter(models.Category.id == id).first()
     if not category:
         raise HTTPException(
@@ -49,7 +51,10 @@ def category_delete(id: str, db: Session = Depends(get_db),user =admin_required)
 
 @category.put("/category/update/{id}", tags=["Category Api"])
 def category_update(
-    id: str, model: schema.Category_Created, db: Session = Depends(get_db),user =admin_required
+    id: str,
+    model: schema.Category_Created,
+    db: Session = Depends(get_db),
+    user=admin_required,
 ):
     category = db.query(models.Category).filter(models.Category.id == id)
     if not category:

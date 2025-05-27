@@ -1,14 +1,17 @@
 import os
-import jwt
-from fastapi import Request,HTTPException,status,Depends
-from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-from .models import Token,User,UserRole
+
+import jwt
+from fastapi import Depends, HTTPException, Request, status
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+
+from .models import Token, User, UserRole
+
 
 class helper:
     def __init__(self):
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")     
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.SECRET_KEY = str(os.getenv("SECRET_KEY"))
         self.ALGORITHM = str(os.getenv("ALGORITHM"))
         self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -27,13 +30,13 @@ class helper:
         )
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
-    
+
     def authenticate_user(self, db, email: str, password: str):
         user = db.query(User).filter(User.email == email).first()
         if not user or not self.verify_password(password, user.passwords):
             return None
         return user
-    
+
     def get_current_user(self, token: str, db: Session):
         existing = db.query(Token).filter(Token.token == token).first()
         if existing:
@@ -62,18 +65,20 @@ class helper:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired or Invalid",
             )
-    
+
     def require_role(self, role: User):
         def checker(request: Request):
             user = request.state.user
             if not user or user.role != role:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Access forbidden: Insufficient role"
+                    detail="Access forbidden: Insufficient role",
                 )
             return user
+
         return checker
-    
+
+
 auth_service = helper()
 
 admin_required = Depends(auth_service.require_role(UserRole.ADMIN))

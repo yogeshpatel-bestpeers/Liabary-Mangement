@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
-from Library_Management.models import UserRole
+
 from pydantic import BaseModel
+
+from Library_Management.models import UserRole
 
 
 class Author_Created(BaseModel):
@@ -25,12 +27,13 @@ class User_Created(BaseModel):
     last_name: str
     passwords: str
 
+
 class User_Update(BaseModel):
     email: str
     first_name: str
     last_name: str
     passwords: str
-    role : UserRole
+    role: UserRole
 
 
 class FineBase(BaseModel):
@@ -55,6 +58,7 @@ class FineOut(FineBase):
 
     class Config:
         orm_mode = True
+
 
 class TokenResponse(BaseModel):
     access_token: str

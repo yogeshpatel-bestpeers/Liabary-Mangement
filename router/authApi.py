@@ -2,17 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-
 from Library_Management.database import get_db
 from Library_Management.models import Token
-from Library_Management.utils import helper
 from Library_Management.schema import TokenResponse
+from Library_Management.utils import helper
+
 auth = helper()
 auth_router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="User API")
 
 
-@auth_router.post("/login",tags=['User API'],response_model=TokenResponse)
+@auth_router.post("/login", tags=["User API"], response_model=TokenResponse)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -27,7 +27,7 @@ def login(
     return {"access_token": token, "token_type": "bearer"}
 
 
-@auth_router.post("/logout",tags=['User API'])
+@auth_router.post("/logout", tags=["User API"])
 def logout(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     existing = db.query(Token).filter(Token.token == token).first()
     if existing:
@@ -40,5 +40,3 @@ def logout(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Logged out successfully"}
-
-

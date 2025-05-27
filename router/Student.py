@@ -3,16 +3,16 @@ from sqlalchemy.orm import Session
 
 from Library_Management import models, schema
 from Library_Management.database import get_db
-from Library_Management import schema,models
-from Library_Management.utils import helper
-from Library_Management.utils import admin_required
+from Library_Management.utils import admin_required, helper
 
 user_router = APIRouter()
 utils = helper()
 
 
 @user_router.post("/signup", status_code=status.HTTP_201_CREATED, tags=["Admin Api"])
-async def create_User(model: schema.User_Created, db: Session = Depends(get_db),admin =admin_required):
+async def create_User(
+    model: schema.User_Created, db: Session = Depends(get_db), admin=admin_required
+):
     hashed_password = utils.hash_password(model.passwords)
 
     email = db.query(models.User).filter(models.User.email == model.email).first()
@@ -34,7 +34,7 @@ async def create_User(model: schema.User_Created, db: Session = Depends(get_db),
 
 
 @user_router.delete("/User/delete", status_code=status.HTTP_200_OK, tags=["Admin Api"])
-async def delete_User(id: str, db: Session = Depends(get_db),user = admin_required):
+async def delete_User(id: str, db: Session = Depends(get_db), user=admin_required):
     User = db.query(models.User).filter(models.User.id == id).first()
     if not User:
         raise HTTPException(
@@ -51,7 +51,8 @@ async def delete_User(id: str, db: Session = Depends(get_db),user = admin_requir
 async def update_User(
     id: str,
     model: schema.User_Update,
-    db: Session = Depends(get_db),admin =admin_required
+    db: Session = Depends(get_db),
+    admin=admin_required,
 ):
     User_query = db.query(models.User).filter(models.User.id == id)
     User = User_query.first()
@@ -67,9 +68,7 @@ async def update_User(
 
 
 @user_router.get("/User/getAll", tags=["Admin Api"])
-async def showUser(
-    db: Session = Depends(get_db),user = admin_required
-):
+async def showUser(db: Session = Depends(get_db), user=admin_required):
     Users = db.query(models.User).all()
     if not Users:
         raise HTTPException(

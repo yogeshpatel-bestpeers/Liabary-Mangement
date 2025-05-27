@@ -3,7 +3,8 @@ from fastapi import FastAPI
 from Library_Management import database
 from Library_Management.database import engine
 from Library_Management.middleware.authentication import AuthenticateMiddleware
-from .router import Author, Book, Category, Issued_Book, Student,authApi
+
+from .router import Author, Book, Category, Issued_Book, Student, authApi
 
 database.Base.metadata.create_all(engine)
 
