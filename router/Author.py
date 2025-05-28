@@ -1,59 +1,67 @@
-from fastapi import APIRouter,Depends,status
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
-from Library_Management.database import get_db
-from sqlalchemy.orm import Session,joinedload
-from Library_Management import models,database
+from sqlalchemy.orm import Session, joinedload
 
+from Library_Management import database, models, schema
+from Library_Management.utils import admin_required
 
 author = APIRouter()
 
 
-@author.post('/author/create',tags=['Author Api'])
-def author_create(model:models.Author_Created,db : Session =Depends(get_db)):
-  new_author = database.Author(**model.__dict__)
+@author.post("/author/create", tags=["Author Api"])
+def author_create(
+    model: schema.Author_Created,
+    db: Session = Depends(database.get_db),
+    user=admin_required,
+):
 
-  db.add(new_author)
-  db.commit()
-  db.refresh(new_author) 
+    new_author = models.Author(**model.__dict__)
 
-  return{'details':'Author Created Sucessfully','author':new_author}
+    db.add(new_author)
+    db.commit()
+    db.refresh(new_author)
 
-@author.get('/author/get/',tags=['Author Api'])
-def auther_get(db : Session =Depends(get_db)):
-  author = db.query(database.Author).options(joinedload(database.Author.books)).all()
+    return {"details": "Author Created Sucessfully", "author": new_author}
 
-  if not author:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail ='Author Not Found')
 
-  return author
+@author.get("/author/get/", tags=["Author Api"])
+def auther_get(db: Session = Depends(database.get_db), user=admin_required):
+    author = db.query(models.Author).options(joinedload(models.Author.books)).all()
 
-@author.delete('/author/delete',tags=['Author Api'])
-def author_delete(id : str,db : Session =Depends(get_db)):
-    author = db.query(database.Author).filter(database.Author.id == id).first()
     if not author:
-          raise HTTPException(
-              status_code=status.HTTP_404_NOT_FOUND, detail=f"Author Not Found"
-          )
-    books = db.query(database.Book).filter(database.Book.category_id == id).all()
-    for book in books:
-        db.delete(book)
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Author Not Found"
+        )
+
+    return author
+
+
+@author.delete("/author/delete", tags=["Author Api"])
+def author_delete(id: str, db: Session = Depends(database.get_db), user=admin_required):
+    author = db.query(models.Author).filter(models.Author.id == id).first()
+    if not author:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Author Not Found"
+        )
     db.delete(author)
     db.commit()
     return {"detail": "Author deleted Sucesfully"}
 
-@author.put('/author/update/{id}',tags=['Author Api'])
-def author_update(id : str,model: models.Author_Created,db : Session =Depends(get_db)):
-    author = db.query(database.Author).filter(database.Author.id == id)
+
+@author.put("/author/update/{id}", tags=["Author Api"])
+def author_update(
+    id: str,
+    model: schema.Author_Created,
+    db: Session = Depends(database.get_db),
+    user=admin_required,
+):
+    author = db.query(models.Author).filter(models.Author.id == id)
     if not author:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Author Not Found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Author Not Found"
         )
 
     author.update(model)
     db.commit()
-    db.refresh(author) 
+    db.refresh(author)
     return author
-
-
