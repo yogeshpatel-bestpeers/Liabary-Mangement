@@ -14,7 +14,6 @@ utils = Helper()
 async def create_User(
     model: schema.User_Created,
     db: AsyncSession = Depends(get_db),
-    admin=Depends(admin_required),
 ):
     hashed_password = utils.hash_password(model.passwords)
 
