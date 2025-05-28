@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, status
-from fastapi.exceptions import HTTPException
-from sqlalchemy.orm import Session, joinedload
+from fastapi import APIRouter, Depends, status, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
 
 from Library_Management import database, models, schema
 from Library_Management.utils import admin_required
@@ -9,59 +10,77 @@ author = APIRouter()
 
 
 @author.post("/author/create", tags=["Author Api"])
-def author_create(
+async def author_create(
     model: schema.Author_Created,
-    db: Session = Depends(database.get_db),
-    user=admin_required,
+    db: AsyncSession = Depends(database.get_db),
+    user=Depends(admin_required),
 ):
-
     new_author = models.Author(**model.__dict__)
 
     db.add(new_author)
-    db.commit()
-    db.refresh(new_author)
+    await db.commit()
+    await db.refresh(new_author)
 
-    return {"details": "Author Created Sucessfully", "author": new_author}
+    return {"details": "Author Created Successfully", "author": new_author}
 
 
 @author.get("/author/get/", tags=["Author Api"])
-def auther_get(db: Session = Depends(database.get_db), user=admin_required):
-    author = db.query(models.Author).options(joinedload(models.Author.books)).all()
+async def author_get(
+    db: AsyncSession = Depends(database.get_db),
+    user=Depends(admin_required),
+):
+    result = await db.execute(
+        select(models.Author).options(joinedload(models.Author.books))
+    )
+    authors = result.scalars().all()
 
-    if not author:
+    if not authors:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Author Not Found"
         )
 
-    return author
+    return authors
 
 
 @author.delete("/author/delete", tags=["Author Api"])
-def author_delete(id: str, db: Session = Depends(database.get_db), user=admin_required):
-    author = db.query(models.Author).filter(models.Author.id == id).first()
-    if not author:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Author Not Found"
-        )
-    db.delete(author)
-    db.commit()
-    return {"detail": "Author deleted Sucesfully"}
-
-
-@author.put("/author/update/{id}", tags=["Author Api"])
-def author_update(
+async def author_delete(
     id: str,
-    model: schema.Author_Created,
-    db: Session = Depends(database.get_db),
-    user=admin_required,
+    db: AsyncSession = Depends(database.get_db),
+    user=Depends(admin_required),
 ):
-    author = db.query(models.Author).filter(models.Author.id == id)
+    result = await db.execute(select(models.Author).where(models.Author.id == id))
+    author = result.scalars().first()
+
     if not author:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Author Not Found"
         )
 
-    author.update(model)
-    db.commit()
-    db.refresh(author)
+    await db.delete(author)
+    await db.commit()
+
+    return {"detail": "Author deleted successfully"}
+
+
+@author.put("/author/update/{id}", tags=["Author Api"])
+async def author_update(
+    id: str,
+    model: schema.Author_Created,
+    db: AsyncSession = Depends(database.get_db),
+    user=Depends(admin_required),
+):
+    result = await db.execute(select(models.Author).where(models.Author.id == id))
+    author = result.scalars().first()
+
+    if not author:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Author Not Found"
+        )
+
+    for key, value in model.dict().items():
+        setattr(author, key, value)
+
+    await db.commit()
+    await db.refresh(author)
+
     return author

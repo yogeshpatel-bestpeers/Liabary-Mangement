@@ -5,10 +5,14 @@ from Library_Management.database import engine
 from Library_Management.middleware.authentication import AuthenticateMiddleware
 
 from .router import Author, Book, Category, Issued_Book, Student, authApi,search
-
-database.Base.metadata.create_all(engine)
-
 app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+  async with engine.begin() as conn:
+      await conn.run_sync(database.Base.metadata.create_all)
+
+
 
 app.add_middleware(AuthenticateMiddleware)
 app.include_router(Author.author)

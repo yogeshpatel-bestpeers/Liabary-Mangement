@@ -4,18 +4,18 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from .models import Token, User, UserRole
 
 
-class helper:
+class Helper:
     def __init__(self):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.SECRET_KEY = str(os.getenv("SECRET_KEY"))
         self.ALGORITHM = str(os.getenv("ALGORITHM"))
         self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
@@ -31,14 +31,16 @@ class helper:
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
 
-    def authenticate_user(self, db, email: str, password: str):
-        user = db.query(User).filter(User.email == email).first()
+    async def authenticate_user(self, db: AsyncSession, email: str, password: str):
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalars().first()
         if not user or not self.verify_password(password, user.passwords):
             return None
         return user
 
-    def get_current_user(self, token: str, db: Session):
-        existing = db.query(Token).filter(Token.token == token).first()
+    async def get_current_user(self, token: str, db: AsyncSession):
+        result = await db.execute(select(Token).where(Token.token == token))
+        existing = result.scalars().first()
         if existing:
             raise HTTPException(status_code=400, detail="Token has expired or Invalid")
 
@@ -52,7 +54,8 @@ class helper:
                     detail="Invalid token payload",
                 )
 
-            user = db.query(User).filter(User.email == email).first()
+            result = await db.execute(select(User).where(User.email == email))
+            user = result.scalars().first()
 
             if user is None:
                 raise HTTPException(
@@ -60,14 +63,14 @@ class helper:
                 )
             return user
 
-        except Exception:
+        except jwt.PyJWTError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired or Invalid",
             )
 
-    def require_role(self, role: User):
-        def checker(request: Request):
+    def require_role(self, role: UserRole):
+        async def checker(request: Request):
             user = request.state.user
             if not user or user.role != role:
                 raise HTTPException(
@@ -79,7 +82,7 @@ class helper:
         return checker
 
 
-auth_service = helper()
+auth_service = Helper()
 
-admin_required = Depends(auth_service.require_role(UserRole.ADMIN))
-user_required = Depends(auth_service.require_role(UserRole.Student))
+admin_required = auth_service.require_role(UserRole.ADMIN)
+user_required = auth_service.require_role(UserRole.Student)

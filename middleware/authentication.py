@@ -2,9 +2,9 @@ from fastapi import status
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from Library_Management.database import get_db
-from Library_Management.utils import helper
+from Library_Management.utils import Helper
 
-auth = helper()
+auth = Helper()
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
