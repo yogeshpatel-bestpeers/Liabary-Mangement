@@ -1,17 +1,26 @@
 from fastapi import FastAPI
 
-from Library_Management import database
+
 from Library_Management.database import engine
 from Library_Management.middleware.authentication import AuthenticateMiddleware
 
 from .router import Author, Book, Category, Issued_Book, Student, authApi,search
-app = FastAPI()
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 
-@app.on_event("startup")
-async def on_startup():
-  async with engine.begin() as conn:
-      await conn.run_sync(database.Base.metadata.create_all)
 
+from .database import engine, Base
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    try:
+        yield
+    finally:
+        await engine.dispose()
+
+app = FastAPI(lifespan=lifespan)
 
 
 app.add_middleware(AuthenticateMiddleware)

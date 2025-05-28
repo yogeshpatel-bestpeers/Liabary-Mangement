@@ -32,9 +32,11 @@ class AuthenticateMiddleware(BaseHTTPMiddleware):
                 )
 
             token = token.split(" ")[1]
-            db = next(get_db())
-            user = auth.get_current_user(token, db=db)
-            request.state.user = user
+            async for db in get_db():
+                user = await auth.get_current_user(token, db)
+                request.state.user = user
+                break
+
             return await call_next(request)
 
         except HTTPException as exc:
