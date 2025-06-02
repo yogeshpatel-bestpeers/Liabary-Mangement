@@ -10,7 +10,7 @@ from Library_Management.utils import Helper
 
 auth = Helper()
 auth_router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="User API")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 @auth_router.post("/login", tags=["User API"], response_model=TokenResponse)
