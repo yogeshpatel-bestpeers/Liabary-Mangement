@@ -24,3 +24,24 @@ async def get_user(db: AsyncSession = Depends(get_db), user = Depends(user_requi
         raise HTTPException(status_code=404, detail="User not found")
 
     return rows[0]
+
+
+@user_p.get("/get_issue_book")
+async def get_issue_book(db: AsyncSession = Depends(get_db), user = Depends(user_required)):
+    cursor_name = "user_cursor"
+
+    async with db.begin():
+        await db.execute(
+                text(f"CALL get_current_issue_book(:id, :cursor)"),
+                {"id":  user.id, "cursor": cursor_name}
+            )
+
+        result = await db.execute(text(f"FETCH ALL FROM {cursor_name}"))
+        rows = result.mappings().all()
+        await db.execute(text(f"CLOSE {cursor_name}"))
+
+    if not rows:
+        raise HTTPException(status_code=404, detail="No Book Issued")
+
+    return rows
+

@@ -11,7 +11,7 @@ fine = APIRouter()
 
 
 def get_fine(issued_book):
-    if issued_book.due_date and datetime.now() > issued_book.due_date:
+    if datetime.now() > issued_book.due_date:
         days_late = (datetime.now() - issued_book.due_date).days
         return {"amount": days_late * 5, "issued_book_id": issued_book.id}
     return {"amount": 0, "issued_book_id": issued_book.id}

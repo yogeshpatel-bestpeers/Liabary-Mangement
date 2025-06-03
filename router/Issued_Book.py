@@ -82,11 +82,11 @@ async def return_book(book_id: str, db: AsyncSession = Depends(get_db), user=Dep
     book = result.scalars().first()
     if not book:
         raise HTTPException(detail="Book Not Found", status_code=status.HTTP_404_NOT_FOUND)
-
+    
     fine_info = get_fine(issued_book)
     fine = 0
     if fine_info["amount"] > 0:
-        fine = create_fine(db, fine_info)
+        fine =await create_fine(db, fine_info)
 
     book.quantity += 1
     issued_book.returned_date = datetime.now()
