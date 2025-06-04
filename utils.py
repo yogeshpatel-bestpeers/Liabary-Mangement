@@ -3,23 +3,25 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
+from fastapi_mail import ConnectionConfig
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi_mail import ConnectionConfig
+
 from .models import Token, User, UserRole
 
 conf = ConnectionConfig(
-    MAIL_USERNAME = os.getenv('EMAIL_HOST_USER'),
-    MAIL_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD'),
-    MAIL_FROM = os.getenv('EMAIL_HOST_USER'),
-    MAIL_PORT = 465,
-    MAIL_SERVER = "smtp.gmail.com",
-    MAIL_STARTTLS = False,
-    MAIL_SSL_TLS = True,
-    USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True
+    MAIL_USERNAME=os.getenv("EMAIL_HOST_USER"),
+    MAIL_PASSWORD=os.getenv("EMAIL_HOST_PASSWORD"),
+    MAIL_FROM=os.getenv("EMAIL_HOST_USER"),
+    MAIL_PORT=465,
+    MAIL_SERVER="smtp.gmail.com",
+    MAIL_STARTTLS=False,
+    MAIL_SSL_TLS=True,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
 )
+
 
 class Helper:
     def __init__(self):
@@ -28,7 +30,7 @@ class Helper:
         self.ALGORITHM = str(os.getenv("ALGORITHM"))
         self.FORGET_PWD_SECRET_KEY = str(os.getenv("SECRET_KEY_FP"))
         self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
-        self.ACCESS_TOKEN_EXPIRE_MINUTES_FP =10
+        self.ACCESS_TOKEN_EXPIRE_MINUTES_FP = 10
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
@@ -43,12 +45,16 @@ class Helper:
         )
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
-    
-    def create_access_token_password(self,data:dict) -> str:
+
+    def create_access_token_password(self, data: dict) -> str:
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES_FP)
-        to_encode.update({"exp":expire})
-        return jwt.encode(to_encode,self.FORGET_PWD_SECRET_KEY,algorithm=self.ALGORITHM)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES_FP
+        )
+        to_encode.update({"exp": expire})
+        return jwt.encode(
+            to_encode, self.FORGET_PWD_SECRET_KEY, algorithm=self.ALGORITHM
+        )
 
     async def authenticate_user(self, db: AsyncSession, email: str, password: str):
         result = await db.execute(select(User).where(User.email == email))

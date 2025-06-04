@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from Library_Management import models
-from Library_Management.Schema import schema
 from Library_Management.database import get_db
-from Library_Management.utils import admin_required, Helper
+from Library_Management.Schema import schema
+from Library_Management.utils import Helper, admin_required
 
 user_router = APIRouter()
 utils = Helper()
@@ -18,7 +18,9 @@ async def create_User(
 ):
     hashed_password = utils.hash_password(model.passwords)
 
-    result = await db.execute(select(models.User).filter(models.User.email == model.email))
+    result = await db.execute(
+        select(models.User).filter(models.User.email == model.email)
+    )
     email = result.scalars().first()
 
     if email:
@@ -57,7 +59,9 @@ async def delete_User(
     return {"detail": "User deleted successfully"}
 
 
-@user_router.put("/User/update/{id}", status_code=status.HTTP_202_ACCEPTED, tags=["Admin Api"])
+@user_router.put(
+    "/User/update/{id}", status_code=status.HTTP_202_ACCEPTED, tags=["Admin Api"]
+)
 async def update_User(
     id: str,
     model: schema.User_Update,

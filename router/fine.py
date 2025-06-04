@@ -26,9 +26,9 @@ async def create_fine(db: AsyncSession, fine_data: dict):
 
 
 @fine.get("/fine/get/{issued_book_id}")
-async def get_fines_by_book(
-    issued_book_id: int, db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(select(Fine).filter(Fine.issued_book_id == issued_book_id))
+async def get_fines_by_book(issued_book_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Fine).filter(Fine.issued_book_id == issued_book_id)
+    )
     fines = result.scalars().all()
     return fines

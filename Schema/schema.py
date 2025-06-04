@@ -1,7 +1,8 @@
+import re
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from Library_Management.models import UserRole
 
@@ -26,6 +27,23 @@ class User_Created(BaseModel):
     first_name: str
     last_name: str
     passwords: str
+
+    @field_validator("email")
+    def validate_email(cls, value):
+        regex = r"^[a-zA-Z0-9._%+-]+@gmail\.com$"
+        if not re.match(regex, value):
+            raise ValueError("Email must be in the format 'username@gmail.com'")
+        return value
+
+    @field_validator("passwords")
+    def validate_password(cls, value):
+
+        if not re.search(r"^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$", value):
+            raise ValueError(
+                "Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character (e.g., !@#$%^&*)."
+            )
+
+        return value
 
 
 class User_Update(BaseModel):
@@ -63,4 +81,3 @@ class FineOut(FineBase):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
-

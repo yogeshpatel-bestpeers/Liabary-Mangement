@@ -1,16 +1,13 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from Library_Management.database import engine
 from Library_Management.middleware.authentication import AuthenticateMiddleware
 
-from .router import Author, Book, Category, Issued_Book, Student, authApi,get_user
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
-
-
-from .database import engine, Base
-from fastapi.middleware.cors import CORSMiddleware
+from .database import Base, engine
+from .router import Author, Book, Category, Issued_Book, Student, authApi, get_user
 
 
 @asynccontextmanager
@@ -22,14 +19,15 @@ async def lifespan(app: FastAPI):
     finally:
         await engine.dispose()
 
+
 app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost.tiangolo.com",
     "https://localhost.tiangolo.com",
     "http://localhost",
-    "http://127.0.0.1:5500", 
-    "http://localhost:5500", 
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
 ]
 
 app.add_middleware(

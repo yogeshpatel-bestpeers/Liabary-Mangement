@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status,Request
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi_mail import FastMail, MessageSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-import jwt
+
 from Library_Management.database import get_db
-from Library_Management.models import Token,User
-from Library_Management.Schema import schema ,password_rest
-from Library_Management.utils import Helper,conf
-from fastapi_mail import MessageSchema,FastMail
+from Library_Management.models import Token, User
+from Library_Management.Schema import password_rest, schema
+from Library_Management.utils import Helper, conf
 
 auth = Helper()
 auth_router = APIRouter()
@@ -16,8 +17,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 @auth_router.post("/login", tags=["User API"], response_model=schema.TokenResponse)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
 ):
     user = await auth.authenticate_user(db, form_data.username, form_data.password)
 
@@ -32,14 +32,15 @@ async def login(
 
 
 @auth_router.post("/logout", tags=["User API"])
-async def logout(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+async def logout(
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+):
     result = await db.execute(select(Token).where(Token.token == token))
     existing = result.scalars().first()
 
     if existing:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Token already logged out"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Token already logged out"
         )
 
     db_token = Token(token=token)
@@ -48,24 +49,29 @@ async def logout(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends
 
     return {"message": "Logged out successfully"}
 
-@auth_router.post('/forget-password')
-async def forgetPassword(forget: password_rest.ForgetPasswordRequest,db : AsyncSession = Depends(get_db)):
+
+@auth_router.post("/forget-password")
+async def forgetPassword(
+    forget: password_rest.ForgetPasswordRequest, db: AsyncSession = Depends(get_db)
+):
 
     user = await db.execute(select(User).where(User.email == forget.email))
     if not user:
-        raise HTTPException(detail="Invlaid Email",status_code=status.HTTP_404_NOT_FOUND)
-    
-    user = user.scalars().first()
-    
-    token = auth.create_access_token_password(data={'email':user.email})
+        raise HTTPException(
+            detail="Invlaid Email", status_code=status.HTTP_404_NOT_FOUND
+        )
 
-    reset_link = f"http://localhost:8000/reset-password?token={token}"  
+    user = user.scalars().first()
+
+    token = auth.create_access_token_password(data={"email": user.email})
+
+    reset_link = f"http://localhost:8000/reset-password?token={token}"
 
     message = MessageSchema(
         subject="Reset Your Password",
         recipients=[user.email],
         body=f"<p>Click the link to reset your password:</p><a href='{reset_link}'>{reset_link}</a>",
-        subtype="html"
+        subtype="html",
     )
 
     fm = FastMail(conf)
@@ -74,11 +80,11 @@ async def forgetPassword(forget: password_rest.ForgetPasswordRequest,db : AsyncS
     return {"detail": "Reset link sent to your email"}
 
 
-@auth_router.post('/reset-password')
+@auth_router.post("/reset-password")
 async def reset_password(
-    request:Request,
-    password : password_rest.Password_Request,
-    db: AsyncSession = Depends(get_db)
+    request: Request,
+    password: password_rest.Password_Request,
+    db: AsyncSession = Depends(get_db),
 ):
     token = request.headers.get("Authorization")
     token = token.split(" ")[1]
@@ -95,7 +101,7 @@ async def reset_password(
     user = result.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     hashed_password = auth.hash_password(password.new_password)
     user.passwords = hashed_password
     await db.commit()
