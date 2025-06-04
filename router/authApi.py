@@ -6,7 +6,8 @@ import jwt
 from Library_Management.database import get_db
 from Library_Management.models import Token,User
 from Library_Management.Schema import schema ,password_rest
-from Library_Management.utils import Helper
+from Library_Management.utils import Helper,conf
+from fastapi_mail import MessageSchema,FastMail
 
 auth = Helper()
 auth_router = APIRouter()
@@ -58,7 +59,19 @@ async def forgetPassword(forget: password_rest.ForgetPasswordRequest,db : AsyncS
     
     token = auth.create_access_token_password(data={'email':user.email})
 
-    return {'detail' : 'Password Reset','token' : token}
+    reset_link = f"http://localhost:8000/reset-password?token={token}"  
+
+    message = MessageSchema(
+        subject="Reset Your Password",
+        recipients=[user.email],
+        body=f"<p>Click the link to reset your password:</p><a href='{reset_link}'>{reset_link}</a>",
+        subtype="html"
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    return {"detail": "Reset link sent to your email"}
 
 
 @auth_router.post('/reset-password')

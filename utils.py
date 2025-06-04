@@ -6,9 +6,20 @@ from fastapi import Depends, HTTPException, Request, status
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-
+from fastapi_mail import ConnectionConfig
 from .models import Token, User, UserRole
 
+conf = ConnectionConfig(
+    MAIL_USERNAME = os.getenv('EMAIL_HOST_USER'),
+    MAIL_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD'),
+    MAIL_FROM = os.getenv('EMAIL_HOST_USER'),
+    MAIL_PORT = 465,
+    MAIL_SERVER = "smtp.gmail.com",
+    MAIL_STARTTLS = False,
+    MAIL_SSL_TLS = True,
+    USE_CREDENTIALS = True,
+    VALIDATE_CERTS = True
+)
 
 class Helper:
     def __init__(self):
