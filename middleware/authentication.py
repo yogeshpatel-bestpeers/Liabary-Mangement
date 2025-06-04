@@ -13,7 +13,8 @@ from fastapi.responses import JSONResponse
 class AuthenticateMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
-        public_routes = ["/login", "/signup", "/docs", "/openapi.json", "/favicon.ico"]
+        public_routes = ["/login", "/signup","/forget-password","/reset-password",
+                            "/docs", "/openapi.json", "/favicon.ico"]
 
         if request.url.path in public_routes:
             return await call_next(request)

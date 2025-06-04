@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 
-from Library_Management import database, models, schema
+from Library_Management import database, models
+from Library_Management.Schema import schema
 from Library_Management.utils import admin_required
 
 author = APIRouter()

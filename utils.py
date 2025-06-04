@@ -15,7 +15,9 @@ class Helper:
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.SECRET_KEY = str(os.getenv("SECRET_KEY"))
         self.ALGORITHM = str(os.getenv("ALGORITHM"))
+        self.FORGET_PWD_SECRET_KEY = str(os.getenv("SECRET_KEY_FP"))
         self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
+        self.ACCESS_TOKEN_EXPIRE_MINUTES_FP =10
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
@@ -30,6 +32,12 @@ class Helper:
         )
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
+    
+    def create_access_token_password(self,data:dict) -> str:
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES_FP)
+        to_encode.update({"exp":expire})
+        return jwt.encode(to_encode,self.FORGET_PWD_SECRET_KEY,algorithm=self.ALGORITHM)
 
     async def authenticate_user(self, db: AsyncSession, email: str, password: str):
         result = await db.execute(select(User).where(User.email == email))
