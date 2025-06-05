@@ -14,17 +14,6 @@ Max_Book_Limit = 5
 async def add_cart(
     book_id: str, db: AsyncSession = Depends(get_db), user=Depends(user_required)
 ):
-    result = await db.execute(
-    select(IssuedBook).where(
-        IssuedBook.user_id == user.id, IssuedBook.returned_date == None
-    )
-    )
-    existing_issued = result.scalars().first()
-    if existing_issued:
-        raise HTTPException(
-            detail="You already have an issued book that hasn't been returned You Can,t Add Book in Cart.",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
     
     result = await db.execute(select(Book).where(Book.id == book_id))
     book = result.scalars().first()
