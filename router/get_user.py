@@ -50,7 +50,7 @@ async def get_issue_book(
     return rows
 
 
-@user_p.get("/get_issue_book")
+@user_p.get("/get/books/issued", tags=["Issued Books Management"])
 async def get_issue_book(
     db: AsyncSession = Depends(get_db), user=Depends(user_required)
 ):

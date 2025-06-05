@@ -7,7 +7,8 @@ from Library_Management.database import engine
 from Library_Management.middleware.authentication import AuthenticateMiddleware
 
 from .database import Base, engine
-from .router import Author, Book, Category, Issued_Book, Student, authApi, get_user
+from .router import (Author, Book, CartItem, Category, Issued_Book, Student,
+                     authApi, get_user)
 
 
 @asynccontextmanager
@@ -46,6 +47,7 @@ app.include_router(Student.user_router)
 app.include_router(Issued_Book.issuedBook)
 app.include_router(authApi.auth_router)
 app.include_router(get_user.user_p)
+app.include_router(CartItem.cart)
 
 
 # alembic revision --autogenerate -m “Description of changes”
