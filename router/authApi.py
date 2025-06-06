@@ -31,7 +31,7 @@ async def login(
     return {"access_token": token, "token_type": "bearer"}
 
 
-@auth_router.post("/logout", tags=["User API"])
+@auth_router.post("/logout", tags=["User API"],status_code = status.HTTP_200_OK)
 async def logout(
     token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ):
