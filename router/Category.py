@@ -11,7 +11,7 @@ from Library_Management.utils import admin_required
 category = APIRouter()
 
 
-@category.post("/category/create", tags=["Category Api"])
+@category.post("/category/create", tags=["Category Api"],status_code=status.HTTP_201_CREATED)
 async def category_create(
     model: schema.Category_Created,
     db: AsyncSession = Depends(get_db),
@@ -44,7 +44,7 @@ async def category_get(
     return categories
 
 
-@category.delete("/category/delete", tags=["Category Api"])
+@category.delete("/category/delete", tags=["Category Api"],status_code=status.HTTP_204_NO_CONTENT)
 async def category_delete(
     id: str,
     db: AsyncSession = Depends(get_db),
@@ -64,7 +64,7 @@ async def category_delete(
     return {"detail": "Category and related books deleted successfully"}
 
 
-@category.put("/category/update/{id}", tags=["Category Api"])
+@category.put("/category/update/{id}", tags=["Category Api"],status_code=status.HTTP_202_ACCEPTED)
 async def category_update(
     id: str,
     model: schema.Category_Created,
