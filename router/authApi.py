@@ -35,7 +35,9 @@ async def login(
 async def logout(
     token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ):
+
     result = await db.execute(select(Token).where(Token.token == token))
+    print("result ",result)
     existing = result.scalars().first()
 
     if existing:
@@ -56,12 +58,12 @@ async def forgetPassword(
 ):
 
     user = await db.execute(select(User).where(User.email == forget.email))
+    user = user.scalars().first()
     if not user:
         raise HTTPException(
             detail="Invlaid Email", status_code=status.HTTP_404_NOT_FOUND
         )
 
-    user = user.scalars().first()
 
     token = auth.create_access_token_password(data={"email": user.email})
 

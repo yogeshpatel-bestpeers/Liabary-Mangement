@@ -64,10 +64,6 @@ class Helper:
         return user
 
     async def get_current_user(self, token: str, db: AsyncSession):
-        result = await db.execute(select(Token).where(Token.token == token))
-        existing = result.scalars().first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Token has expired or Invalid")
 
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
@@ -84,7 +80,7 @@ class Helper:
 
             if user is None:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found"
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"User Not Found"
                 )
             return user
 
