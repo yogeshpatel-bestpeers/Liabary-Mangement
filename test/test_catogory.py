@@ -1,6 +1,7 @@
 import pytest
 from fastapi import status
 from httpx import ASGITransport, AsyncClient
+import uuid
 
 @pytest.mark.asyncio
 async def test_create_catogory_success(test_app, admin_test_user_token):
@@ -50,3 +51,16 @@ async def test_get_categories_success(test_app, admin_test_user_token, create_ca
         print("RESPONSE BODY:", response.text) 
         assert response.status_code == status.HTTP_200_OK
     
+
+@pytest.mark.asyncio
+async def test_update_category_not_found(test_app, admin_test_user_token):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = {"Authorization": f"Bearer {admin_test_user_token}"}
+        payload = {
+            "name": "Tech"
+        }
+        id = str(uuid.uuid4())
+        response = await client.put(f"/category/update/{id}", headers=headers, json=payload)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
