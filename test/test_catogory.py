@@ -40,3 +40,13 @@ async def test_update_catogory_success(test_app, admin_test_user_token, create_c
         id = create_category.id
         response_2 = await client.put(f"/category/update/{id}", headers=headers, json=payload)
         assert response_2.status_code == status.HTTP_202_ACCEPTED
+
+@pytest.mark.asyncio
+async def test_get_categories_success(test_app, admin_test_user_token, create_category):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        headers = {"Authorization": f"Bearer {admin_test_user_token}"}
+        response = await client.get("/category/get", headers=headers)
+        print("RESPONSE BODY:", response.text) 
+        assert response.status_code == status.HTTP_200_OK
+    

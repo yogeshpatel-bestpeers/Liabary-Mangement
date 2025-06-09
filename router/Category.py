@@ -17,7 +17,7 @@ async def category_create(
     db: AsyncSession = Depends(get_db),
     user=Depends(admin_required),
 ):
-    new_category = models.Category(**model.dict())
+    new_category = models.Category(**model.model_dump())
 
     db.add(new_category)
     await db.commit()
@@ -26,7 +26,7 @@ async def category_create(
     return {"details": "Category Created Successfully", "category": new_category}
 
 
-@category.get("/category/get/", tags=["Category Api"])
+@category.get("/category/get", tags=["Category Api"],status_code = status.HTTP_200_OK)
 async def category_get(
     db: AsyncSession = Depends(get_db),
     user=Depends(admin_required),
@@ -34,7 +34,7 @@ async def category_get(
     result = await db.execute(
         select(models.Category).options(joinedload(models.Category.books))
     )
-    categories = result.scalars().all()
+    categories = result.unique().scalars().all() 
 
     if not categories:
         raise HTTPException(

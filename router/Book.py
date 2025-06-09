@@ -10,9 +10,9 @@ from Library_Management.Schema import schema
 book = APIRouter()
 
 
-@book.post("/book/create", tags=["Book Api"])
+@book.post("/book/create", tags=["Book Api"],status_code=status.HTTP_201_CREATED)
 async def book_create(model: schema.Book_Created, db: AsyncSession = Depends(get_db)):
-    new_book = models.Book(**model.dict())
+    new_book = models.Book(**model.model_dump())
 
     db.add(new_book)
     await db.commit()
@@ -38,7 +38,7 @@ async def book_get(db: AsyncSession = Depends(get_db)):
     return books
 
 
-@book.delete("/book/delete", tags=["Book Api"])
+@book.delete("/book/delete", tags=["Book Api"],status_code=status.HTTP_204_NO_CONTENT)
 async def book_delete(id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(models.Book).where(models.Book.id == id))
     book = result.scalars().first()
@@ -50,10 +50,10 @@ async def book_delete(id: str, db: AsyncSession = Depends(get_db)):
 
     await db.delete(book)
     await db.commit()
-    return {"detail": "Book deleted successfully"}
+    return {"details": "Book deleted successfully"}
 
 
-@book.put("/book/update/{id}", tags=["Book Api"])
+@book.put("/book/update/{id}", tags=["Book Api"],status_code=status.HTTP_202_ACCEPTED)
 async def book_update(
     id: str, model: schema.Book_Created, db: AsyncSession = Depends(get_db)
 ):

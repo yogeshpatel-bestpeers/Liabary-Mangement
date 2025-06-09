@@ -28,7 +28,7 @@ async def create_User(
             status_code=status.HTTP_302_FOUND, detail="Email Already Exist"
         )
 
-    User_data = model.dict()
+    User_data = model.__dict__
     User_data["passwords"] = hashed_password
 
     new_User = models.User(**User_data)
