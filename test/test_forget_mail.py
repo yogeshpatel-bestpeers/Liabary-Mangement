@@ -1,22 +1,7 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import patch
-from Library_Management.models import User
-from Library_Management.utils import auth_service
 
-@pytest.fixture()
-async def test_user(override_get_db) :
-    async for session in override_get_db():
-        user = User(
-            email="validuser1@gmail.com",
-            passwords=auth_service.hash_password("SecurePass123!"),
-            first_name="Test",
-            last_name="User",
-        )
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        yield user
 
 @pytest.mark.asyncio
 async def test_forget_password_success(test_app, test_user):
