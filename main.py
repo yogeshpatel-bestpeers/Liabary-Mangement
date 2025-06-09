@@ -1,13 +1,13 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from .router import (
-    Author, Book, CartItem, Category, Issued_Book, Student,
-    authApi, get_user
-)
-from .middleware.authentication import AuthenticateMiddleware
-from .database import Base,engine
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from .database import Base, engine
+from .middleware.authentication import AuthenticateMiddleware
+from .router import (Author, Book, CartItem, Category, Issued_Book, Student,
+                     authApi, get_user)
+
 
 def create_app(engine):
     @asynccontextmanager
@@ -21,12 +21,12 @@ def create_app(engine):
 
     app = FastAPI(lifespan=lifespan)
     origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://127.0.0.1:5500",
-    "http://localhost:5500",
-]
+        "http://localhost.tiangolo.com",
+        "https://localhost.tiangolo.com",
+        "http://localhost",
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+    ]
 
     app.add_middleware(
         CORSMiddleware,
@@ -35,7 +35,6 @@ def create_app(engine):
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
 
     app.add_middleware(AuthenticateMiddleware)
 

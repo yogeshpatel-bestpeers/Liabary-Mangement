@@ -41,8 +41,8 @@ class AuthenticateMiddleware(BaseHTTPMiddleware):
 
             token = token.split(" ")[1]
             get_db_override = request.app.dependency_overrides.get(get_db, get_db)
-            async for db in get_db_override(): 
-            # async for db in get_db():
+            async for db in get_db_override():
+                # async for db in get_db():
                 user = await auth.get_current_user(token, db)
                 request.state.user = user
                 break

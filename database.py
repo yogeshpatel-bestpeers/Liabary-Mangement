@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base
+
 Base = declarative_base()
 
 from sqlalchemy.orm import sessionmaker

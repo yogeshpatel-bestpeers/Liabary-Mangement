@@ -1,12 +1,12 @@
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from Library_Management.main import create_app
-from Library_Management.database import Base, get_db
-from httpx import AsyncClient, ASGITransport
-from Library_Management.models import User,Book,Cart,Author,Category
-from Library_Management.utils import auth_service
 
+from Library_Management.database import Base, get_db
+from Library_Management.main import create_app
+from Library_Management.models import Author, Book, Cart, Category, User
+from Library_Management.utils import auth_service
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:developer@localhost/test_db"
 
@@ -31,7 +31,7 @@ def payload():
         "email": "validuser1@gmail.com",
         "passwords": "SecurePass123!",
         "first_name": "Test",
-        "last_name": "User"
+        "last_name": "User",
     }
 
 
@@ -57,9 +57,8 @@ def test_app(setup_test_db, override_get_db):
     return app
 
 
-
 @pytest.fixture()
-async def test_user(override_get_db) :
+async def test_user(override_get_db):
     async for session in override_get_db():
         user = User(
             email="validuser1@gmail.com",
@@ -72,14 +71,15 @@ async def test_user(override_get_db) :
         await session.refresh(user)
         yield user
 
+
 @pytest.fixture
 async def test_user_token(test_app, test_user):
     transport = ASGITransport(app=test_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-    
+
         login_data = {
             "username": test_user.email,
-            "password": "SecurePass123!", 
+            "password": "SecurePass123!",
         }
         login_response = await client.post("/login", data=login_data)
         assert login_response.status_code == 200
@@ -100,6 +100,7 @@ async def create_author(override_get_db):
         await session.delete(author)
         await session.commit()
 
+
 @pytest.fixture()
 async def create_category(override_get_db):
     async for session in override_get_db():
@@ -110,6 +111,7 @@ async def create_category(override_get_db):
         yield category
         await session.delete(category)
         await session.commit()
+
 
 @pytest.fixture()
 async def create_book(override_get_db, create_author, create_category):
@@ -126,6 +128,7 @@ async def create_book(override_get_db, create_author, create_category):
         yield book
         await session.delete(book)
         await session.commit()
+
 
 @pytest.fixture()
 async def add_book_to_cart(override_get_db, create_book, test_user):

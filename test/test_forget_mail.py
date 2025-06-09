@@ -1,6 +1,7 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import patch
+
+import pytest
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.mark.asyncio
@@ -14,6 +15,7 @@ async def test_forget_password_success(test_app, test_user):
             assert response.json() == {"detail": "Reset link sent to your email"}
             mock_send.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_forget_password_invalid_email(test_app):
     transport = ASGITransport(app=test_app)
@@ -22,6 +24,7 @@ async def test_forget_password_invalid_email(test_app):
         response = await client.post("/forget-password", json=payload)
         assert response.status_code == 404
         assert response.json() == {"detail": "Invlaid Email"}
+
 
 @pytest.mark.asyncio
 async def test_reset_password_invalid_token(test_app):

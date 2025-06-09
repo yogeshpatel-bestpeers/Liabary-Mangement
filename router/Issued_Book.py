@@ -33,7 +33,6 @@ async def get__issued_books(
 )
 async def issued_book(db: AsyncSession = Depends(get_db), user=Depends(user_required)):
 
-
     cart_result = await db.execute(select(Cart).where(Cart.user_id == user.id))
     cart_items = cart_result.scalars().all()
 

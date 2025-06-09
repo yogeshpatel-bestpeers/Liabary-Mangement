@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator,ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from Library_Management.models import UserRole
 
@@ -75,6 +75,7 @@ class FineOut(FineBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class TokenResponse(BaseModel):
     access_token: str

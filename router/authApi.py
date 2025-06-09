@@ -31,13 +31,13 @@ async def login(
     return {"access_token": token, "token_type": "bearer"}
 
 
-@auth_router.post("/logout", tags=["User API"],status_code = status.HTTP_200_OK)
+@auth_router.post("/logout", tags=["User API"], status_code=status.HTTP_200_OK)
 async def logout(
     token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ):
 
     result = await db.execute(select(Token).where(Token.token == token))
-    print("result ",result)
+    print("result ", result)
     existing = result.scalars().first()
 
     if existing:
@@ -63,7 +63,6 @@ async def forgetPassword(
         raise HTTPException(
             detail="Invlaid Email", status_code=status.HTTP_404_NOT_FOUND
         )
-
 
     token = auth.create_access_token_password(data={"email": user.email})
 
