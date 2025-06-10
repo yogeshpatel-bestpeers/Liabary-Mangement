@@ -1,6 +1,5 @@
-import os
 from datetime import datetime, timedelta, timezone
-
+from Library_Management.config import get_settings
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi_mail import ConnectionConfig
@@ -10,27 +9,29 @@ from sqlalchemy.future import select
 
 from .models import Token, User, UserRole
 
+
+settings = get_settings()
+
 conf = ConnectionConfig(
-    MAIL_USERNAME=os.getenv("EMAIL_HOST_USER"),
-    MAIL_PASSWORD=os.getenv("EMAIL_HOST_PASSWORD"),
-    MAIL_FROM=os.getenv("EMAIL_HOST_USER"),
-    MAIL_PORT=465,
-    MAIL_SERVER="smtp.gmail.com",
-    MAIL_STARTTLS=False,
-    MAIL_SSL_TLS=True,
+    MAIL_USERNAME=settings.EMAIL_HOST_USER,
+    MAIL_PASSWORD=settings.EMAIL_HOST_PASSWORD,
+    MAIL_FROM=settings.EMAIL_HOST_USER,
+    MAIL_PORT=settings.EMAIL_PORT,
+    MAIL_SERVER=settings.EMAIL_HOST,
+    MAIL_STARTTLS=settings.EMAIL_USE_TLS,
+    MAIL_SSL_TLS=settings.EMAIL_USE_SSL,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
 )
 
-
 class Helper:
     def __init__(self):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        self.SECRET_KEY = str(os.getenv("SECRET_KEY"))
-        self.ALGORITHM = str(os.getenv("ALGORITHM"))
-        self.FORGET_PWD_SECRET_KEY = str(os.getenv("SECRET_KEY_FP"))
-        self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
-        self.ACCESS_TOKEN_EXPIRE_MINUTES_FP = 10
+        self.SECRET_KEY = settings.SECRET_KEY
+        self.ALGORITHM = settings.ALGORITHM
+        self.FORGET_PWD_SECRET_KEY = settings.SECRET_KEY_FP
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        self.ACCESS_TOKEN_EXPIRE_MINUTES_FP = settings.ACCESS_TOKEN_EXPIRE_MINUTES_FP
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
