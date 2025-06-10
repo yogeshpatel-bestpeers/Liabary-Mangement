@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
@@ -8,26 +9,24 @@ from sqlalchemy.orm import joinedload
 from Library_Management.database import get_db
 from Library_Management.models import Book, Cart, IssuedBook
 from Library_Management.utils import admin_required, user_required
-from fastapi_utils.cbv import cbv
+
 from .fine import create_fine, get_fine
 
-issuedBook = APIRouter(tags=['Book Issue Api'])
+issuedBook = APIRouter(tags=["Book Issue Api"])
+
 
 @cbv(issuedBook)
-class BokkIssueView():
+class BokkIssueView:
     db: AsyncSession = Depends(get_db)
 
     @issuedBook.get("/admin/get/issuedBook")
-    async def get__issued_books(self,
-        user=Depends(admin_required)
-    ):
+    async def get__issued_books(self, user=Depends(admin_required)):
         result = await self.db.execute(
             select(IssuedBook)
             .options(joinedload(IssuedBook.user), joinedload(IssuedBook.fine))
             .filter(IssuedBook.returned_date == None)
         )
         return result.scalars().all()
-
 
     @issuedBook.post(
         "/book/issue",
@@ -48,7 +47,9 @@ class BokkIssueView():
 
         for item in cart_items:
 
-            book_result = await self.db.execute(select(Book).where(Book.id == item.book_id))
+            book_result = await self.db.execute(
+                select(Book).where(Book.id == item.book_id)
+            )
             book = book_result.scalars().first()
 
             if not book:
@@ -80,11 +81,8 @@ class BokkIssueView():
             "due_date": due_date.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-
     @issuedBook.delete("/book/return/{book_id}")
-    async def return_book(self,
-        book_id: str, user=Depends(user_required)
-    ):
+    async def return_book(self, book_id: str, user=Depends(user_required)):
         result = await self.db.execute(
             select(IssuedBook).where(
                 IssuedBook.book_id == book_id,

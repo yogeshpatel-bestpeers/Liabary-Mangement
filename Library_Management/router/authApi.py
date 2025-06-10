@@ -2,16 +2,16 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi_mail import FastMail, MessageSchema
+from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from fastapi_utils.cbv import cbv
+
 from Library_Management.database import get_db
 from Library_Management.models import Token, User
 from Library_Management.Schema import password_rest, schema
 from Library_Management.utils import Helper, conf
 
-
-auth_router = APIRouter(tags=['Auth Api'])
+auth_router = APIRouter(tags=["Auth Api"])
 
 
 @cbv(auth_router)
@@ -21,10 +21,10 @@ class AuthView:
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
     @auth_router.post("/login", response_model=schema.TokenResponse)
-    async def login(self,
-        form_data: OAuth2PasswordRequestForm = Depends()
-    ):
-        user = await self.auth.authenticate_user(self.db, form_data.username, form_data.password)
+    async def login(self, form_data: OAuth2PasswordRequestForm = Depends()):
+        user = await self.auth.authenticate_user(
+            self.db, form_data.username, form_data.password
+        )
 
         if not user:
             raise HTTPException(
@@ -35,11 +35,8 @@ class AuthView:
 
         return {"access_token": token, "token_type": "bearer"}
 
-
     @auth_router.post("/logout", status_code=status.HTTP_200_OK)
-    async def logout(self,
-        token: str = Depends(oauth2_scheme)
-    ):
+    async def logout(self, token: str = Depends(oauth2_scheme)):
 
         result = await self.db.execute(select(Token).where(Token.token == token))
         print("result ", result)
@@ -47,7 +44,8 @@ class AuthView:
 
         if existing:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Token already logged out"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Token already logged out",
             )
 
         self.db_token = Token(token=token)
@@ -56,11 +54,8 @@ class AuthView:
 
         return {"message": "Logged out successfully"}
 
-
     @auth_router.post("/forget-password")
-    async def forgetPassword(self,
-        forget: password_rest.ForgetPasswordRequest
-    ):
+    async def forgetPassword(self, forget: password_rest.ForgetPasswordRequest):
 
         user = await self.db.execute(select(User).where(User.email == forget.email))
         user = user.scalars().first()
@@ -85,9 +80,9 @@ class AuthView:
 
         return {"detail": "Reset link sent to your email"}
 
-
-    @auth_router.post("/reset-password",status_code=status.HTTP_200_OK)
-    async def reset_password(self,
+    @auth_router.post("/reset-password", status_code=status.HTTP_200_OK)
+    async def reset_password(
+        self,
         request: Request,
         password: password_rest.Password_Request,
     ):
@@ -95,7 +90,9 @@ class AuthView:
         token = token.split(" ")[1]
 
         try:
-            payload = jwt.decode(token, self.auth.FORGET_PWD_SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(
+                token, self.auth.FORGET_PWD_SECRET_KEY, algorithms=["HS256"]
+            )
             email = payload.get("email")
             if email is None:
                 raise HTTPException(status_code=401, detail="Invalid token")
