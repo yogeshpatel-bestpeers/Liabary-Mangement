@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from Library_Management.config import get_settings
+
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi_mail import ConnectionConfig
@@ -7,8 +7,9 @@ from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .models import Token, User, UserRole
+from Library_Management.config import get_settings
 
+from .models import Token, User, UserRole
 
 settings = get_settings()
 
@@ -23,6 +24,7 @@ conf = ConnectionConfig(
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
 )
+
 
 class Helper:
     def __init__(self):

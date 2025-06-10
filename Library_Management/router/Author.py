@@ -1,22 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
-from fastapi_utils.cbv import cbv
+
 from Library_Management import database, models
 from Library_Management.Schema import schema
 from Library_Management.utils import admin_required
 
 author = APIRouter(tags=["Author Api"])
 
+
 @cbv(author)
 class AuthorView:
     db: AsyncSession = Depends(database.get_db)
 
     @author.post("/author/create")
-    async def author_create(self,
-        model: schema.Author_Created,
-        user=Depends(admin_required)
+    async def author_create(
+        self, model: schema.Author_Created, user=Depends(admin_required)
     ):
         new_author = models.Author(**model.__dict__)
 
@@ -26,9 +27,9 @@ class AuthorView:
 
         return {"details": "Author Created Successfully", "author": new_author}
 
-
     @author.get("/author/get/")
-    async def author_get(self,
+    async def author_get(
+        self,
         user=Depends(admin_required),
     ):
         result = await self.self.db.execute(
@@ -43,13 +44,15 @@ class AuthorView:
 
         return authors
 
-
     @author.delete("/author/delete")
-    async def author_delete(self,
+    async def author_delete(
+        self,
         id: str,
         user=Depends(admin_required),
     ):
-        result = await self.db.execute(select(models.Author).where(models.Author.id == id))
+        result = await self.db.execute(
+            select(models.Author).where(models.Author.id == id)
+        )
         author = result.scalars().first()
 
         if not author:
@@ -62,14 +65,16 @@ class AuthorView:
 
         return {"detail": "Author deleted successfully"}
 
-
     @author.put("/author/update/{id}")
-    async def author_update(self,
+    async def author_update(
+        self,
         id: str,
         model: schema.Author_Created,
         user=Depends(admin_required),
     ):
-        result = await self.db.execute(select(models.Author).where(models.Author.id == id))
+        result = await self.db.execute(
+            select(models.Author).where(models.Author.id == id)
+        )
         author = result.scalars().first()
 
         if not author:

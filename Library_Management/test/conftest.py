@@ -71,6 +71,7 @@ async def test_user(override_get_db):
         await session.refresh(user)
         yield user
 
+
 @pytest.fixture()
 async def admin_test_user(override_get_db):
     async for session in override_get_db():
@@ -79,12 +80,13 @@ async def admin_test_user(override_get_db):
             passwords=auth_service.hash_password("SecurePass123!"),
             first_name="Test",
             last_name="User",
-            role ="admin"
+            role="admin",
         )
         session.add(user)
         await session.commit()
         await session.refresh(user)
         yield user
+
 
 @pytest.fixture
 async def admin_test_user_token(test_app, admin_test_user):
@@ -92,7 +94,7 @@ async def admin_test_user_token(test_app, admin_test_user):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
 
         login_data = {
-            "username":  admin_test_user.email,
+            "username": admin_test_user.email,
             "password": "SecurePass123!",
         }
         login_response = await client.post("/login", data=login_data)
@@ -101,6 +103,7 @@ async def admin_test_user_token(test_app, admin_test_user):
         assert "access_token" in json_resp
 
         yield json_resp["access_token"]
+
 
 @pytest.fixture
 async def test_user_token(test_app, test_user):

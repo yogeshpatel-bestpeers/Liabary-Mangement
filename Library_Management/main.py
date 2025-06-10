@@ -5,8 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Base, engine
 from .middleware.authentication import AuthenticateMiddleware
-from .router import (Author, Book, CartItem, Category, Issued_Book, Student,
-                     authApi, get_user)
+from .router import (
+    Author,
+    Book,
+    CartItem,
+    Category,
+    Issued_Book,
+    Student,
+    authApi,
+    get_user,
+)
 
 
 def create_app(engine):

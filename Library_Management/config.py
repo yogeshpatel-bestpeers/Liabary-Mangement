@@ -1,6 +1,8 @@
-from pydantic_settings import BaseSettings
-from pydantic import EmailStr
 from functools import lru_cache
+
+from pydantic import EmailStr
+from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     SECRET_KEY: str

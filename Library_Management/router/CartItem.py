@@ -1,24 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_utils.cbv import cbv
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi_utils.cbv import cbv
+
 from Library_Management.database import get_db
 from Library_Management.models import Book, Cart, IssuedBook
 from Library_Management.utils import user_required
 
-
-cart = APIRouter(tags = ['Cart Api'])
+cart = APIRouter(tags=["Cart Api"])
 
 Max_Book_Limit = 5
 
+
 @cbv(cart)
-class CartView():
+class CartView:
     db: AsyncSession = Depends(get_db)
-    
+
     @cart.post("/cart/add/{book_id}")
-    async def add_cart(self,
-        book_id: str,  user=Depends(user_required)
-    ):
+    async def add_cart(self, book_id: str, user=Depends(user_required)):
 
         result = await self.db.execute(select(Book).where(Book.id == book_id))
         book = result.scalars().first()
@@ -60,9 +59,8 @@ class CartView():
 
         return {"details": "Book added to cart"}
 
-
     @cart.delete("cart/remove/book")
-    async def remove_from_cart(self,book_id: str):
+    async def remove_from_cart(self, book_id: str):
 
         cart_item = await self.db.execute(select(Cart).where(Cart.book_id == book_id))
 
