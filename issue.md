@@ -36,3 +36,11 @@ AsyncClient is an async HTTP client from httpx.
 Since it uses ASGITransport, it doesn't make network calls — it routes directly to the FastAPI app.
 
 A network call is any request that goes over a network connection (like HTTP) from a client (browser, Postman, or code) to a server.
+
+The @lru_cache() decorator in Python is used for caching function results, meaning once a function is called with a particular set of arguments, its result is stored and reused for subsequent calls with the same arguments. This boosts performance by avoiding redundant calculations, especially for expensive functions.
+
+However, if settings or configurations need to be dynamically re-evaluated (e.g., per request or based on context changes), caching can lead to outdated or incorrect results. Since @lru_cache() stores previous outputs, updates to settings won't trigger re-evaluation—they'll just return cached values.
+
+The @lru_cache() decorator in Python is used for caching function results, meaning once a function is called with a particular set of arguments, its result is stored and reused for subsequent calls with the same arguments. This boosts performance by avoiding redundant calculations, especially for expensive functions.
+
+However, if settings or configurations need to be dynamically re-evaluated (e.g., per request or based on context changes), caching can lead to outdated or incorrect results. Since @lru_cache() stores previous outputs, updates to settings won't trigger re-evaluation—they'll just return cached values.

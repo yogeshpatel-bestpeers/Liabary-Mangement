@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -44,7 +45,7 @@ class AuthorView:
 
         return authors
 
-    @author.delete("/author/delete")
+    @author.delete("/author/delete",status_code= status.HTTP_200_OK)
     async def author_delete(
         self,
         id: str,
@@ -63,7 +64,7 @@ class AuthorView:
         await self.db.delete(author)
         await self.db.commit()
 
-        return {"detail": "Author deleted successfully"}
+        return JSONResponse(content={"detail": "Author deleted successfully"})
 
     @author.put("/author/update/{id}")
     async def author_update(
@@ -88,4 +89,4 @@ class AuthorView:
         await self.db.commit()
         await self.db.refresh(author)
 
-        return author
+        return JSONResponse(content={"detail": "Author updated successfully"},status_code=status.HTTP_202_ACCEPTED)
