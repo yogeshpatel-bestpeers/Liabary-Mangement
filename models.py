@@ -120,6 +120,17 @@ class Fine(Base):
     )
 
 
+class Cart(Base):
+    __tablename__ = "carts"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    book_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("books.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+
+
 class Token(Base):
     __tablename__ = "token"
 

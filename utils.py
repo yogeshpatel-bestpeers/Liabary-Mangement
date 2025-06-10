@@ -1,21 +1,37 @@
-import os
 from datetime import datetime, timedelta, timezone
-
+from Library_Management.config import get_settings
 import jwt
 from fastapi import Depends, HTTPException, Request, status
+from fastapi_mail import ConnectionConfig
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from .models import Token, User, UserRole
 
 
-class helper:
+settings = get_settings()
+
+conf = ConnectionConfig(
+    MAIL_USERNAME=settings.EMAIL_HOST_USER,
+    MAIL_PASSWORD=settings.EMAIL_HOST_PASSWORD,
+    MAIL_FROM=settings.EMAIL_HOST_USER,
+    MAIL_PORT=settings.EMAIL_PORT,
+    MAIL_SERVER=settings.EMAIL_HOST,
+    MAIL_STARTTLS=settings.EMAIL_USE_TLS,
+    MAIL_SSL_TLS=settings.EMAIL_USE_SSL,
+    USE_CREDENTIALS=True,
+    VALIDATE_CERTS=True,
+)
+
+class Helper:
     def __init__(self):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        self.SECRET_KEY = str(os.getenv("SECRET_KEY"))
-        self.ALGORITHM = str(os.getenv("ALGORITHM"))
-        self.ACCESS_TOKEN_EXPIRE_MINUTES = 30
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.SECRET_KEY = settings.SECRET_KEY
+        self.ALGORITHM = settings.ALGORITHM
+        self.FORGET_PWD_SECRET_KEY = settings.SECRET_KEY_FP
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        self.ACCESS_TOKEN_EXPIRE_MINUTES_FP = settings.ACCESS_TOKEN_EXPIRE_MINUTES_FP
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
@@ -31,16 +47,24 @@ class helper:
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
 
-    def authenticate_user(self, db, email: str, password: str):
-        user = db.query(User).filter(User.email == email).first()
+    def create_access_token_password(self, data: dict) -> str:
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES_FP
+        )
+        to_encode.update({"exp": expire})
+        return jwt.encode(
+            to_encode, self.FORGET_PWD_SECRET_KEY, algorithm=self.ALGORITHM
+        )
+
+    async def authenticate_user(self, db: AsyncSession, email: str, password: str):
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalars().first()
         if not user or not self.verify_password(password, user.passwords):
             return None
         return user
 
-    def get_current_user(self, token: str, db: Session):
-        existing = db.query(Token).filter(Token.token == token).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Token has expired or Invalid")
+    async def get_current_user(self, token: str, db: AsyncSession):
 
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
@@ -52,22 +76,23 @@ class helper:
                     detail="Invalid token payload",
                 )
 
-            user = db.query(User).filter(User.email == email).first()
+            result = await db.execute(select(User).where(User.email == email))
+            user = result.scalars().first()
 
             if user is None:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found"
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"User Not Found"
                 )
             return user
 
-        except Exception:
+        except jwt.PyJWTError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired or Invalid",
             )
 
-    def require_role(self, role: User):
-        def checker(request: Request):
+    def require_role(self, role: UserRole):
+        async def checker(request: Request):
             user = request.state.user
             if not user or user.role != role:
                 raise HTTPException(
@@ -79,7 +104,7 @@ class helper:
         return checker
 
 
-auth_service = helper()
+auth_service = Helper()
 
-admin_required = Depends(auth_service.require_role(UserRole.ADMIN))
-user_required = Depends(auth_service.require_role(UserRole.Student))
+admin_required = auth_service.require_role(UserRole.ADMIN)
+user_required = auth_service.require_role(UserRole.Student)

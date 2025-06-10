@@ -1,68 +1,87 @@
-from fastapi import APIRouter, Depends, status
-from fastapi.exceptions import HTTPException
-from sqlalchemy.orm import Session, joinedload
-
-from Library_Management import models, schema
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import joinedload
+from fastapi_utils.cbv import cbv
+from Library_Management import models
 from Library_Management.database import get_db
+from Library_Management.Schema import schema
 from Library_Management.utils import admin_required
 
-category = APIRouter()
+category = APIRouter(tags=['Categary Api'])
+
+@cbv(category)
+class CategaryView():
+    db: AsyncSession = Depends(get_db)
+
+    @category.post("/category/create",status_code=status.HTTP_201_CREATED)
+    async def category_create(self,
+        model: schema.Category_Created,
+        user=Depends(admin_required),
+    ):
+        new_category = models.Category(**model.model_dump())
+
+        self.db.add(new_category)
+        await self.db.commit()
+        await self.db.refresh(new_category)
+
+        return {"details": "Category Created Successfully", "category": new_category}
 
 
-@category.post("/category/create", tags=["Category Api"])
-def category_create(
-    model: schema.Category_Created, db: Session = Depends(get_db), user=admin_required
-):
-    new_category = models.Category(**model.__dict__)
-
-    db.add(new_category)
-    db.commit()
-    db.refresh(new_category)
-
-    return {"details": "Category Created Sucessfully", "category": new_category}
-
-
-@category.get("/category/get/", tags=["Category Api"])
-def auther_get(db: Session = Depends(get_db), user=admin_required):
-    category = (
-        db.query(models.Category).options(joinedload(models.Category.books)).all()
-    )
-
-    if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
+    @category.get("/category/get",status_code = status.HTTP_200_OK)
+    async def category_get(self,
+        user=Depends(admin_required),
+    ):
+        result = await self.db.execute(
+            select(models.Category).options(joinedload(models.Category.books))
         )
+        categories = result.unique().scalars().all() 
 
-    return category
+        if not categories:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
+            )
 
-
-@category.delete("/category/delete", tags=["Category Api"])
-def category_delete(id: str, db: Session = Depends(get_db), user=admin_required):
-    category = db.query(models.Category).filter(models.Category.id == id).first()
-    if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
-        )
-    db.delete(category)
-    db.commit()
-
-    return {"detail": "Category and related books deleted successfully"}
+        return categories
 
 
-@category.put("/category/update/{id}", tags=["Category Api"])
-def category_update(
-    id: str,
-    model: schema.Category_Created,
-    db: Session = Depends(get_db),
-    user=admin_required,
-):
-    category = db.query(models.Category).filter(models.Category.id == id)
-    if not category:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
-        )
+    @category.delete("/category/delete",status_code=status.HTTP_204_NO_CONTENT)
+    async def category_delete(self,
+        id: str,
+        user=Depends(admin_required),
+    ):
+        result = await self.db.execute(select(models.Category).where(models.Category.id == id))
+        category_obj = result.scalars().first()
 
-    category.update(model)
-    db.commit()
-    db.refresh(category)
-    return category
+        if not category_obj:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
+            )
+
+        await self.db.delete(category_obj)
+        await self.db.commit()
+
+        return {"detail": "Category and related books deleted successfully"}
+
+
+    @category.put("/category/update/{id}",status_code=status.HTTP_202_ACCEPTED)
+    async def category_update(self,
+        id: str,
+        model: schema.Category_Created,
+        user=Depends(admin_required),
+    ):
+        result = await self.db.execute(select(models.Category).where(models.Category.id == id))
+        category_obj = result.scalars().first()
+
+        if not category_obj:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Category Not Found"
+            )
+
+        for key, value in model.model_dump().items():
+            setattr(category_obj, key, value)
+
+        await self.db.commit()
+        await self.db.refresh(category_obj)
+
+        return category_obj
