@@ -21,7 +21,7 @@ services:
     
 
   web:
-    image: lib:latest
+    image: lib-latest:latest
     env_file:
       - .env
     ports:
