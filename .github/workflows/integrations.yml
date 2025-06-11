@@ -16,9 +16,9 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: developer
-          POSTGRES_DB: test_db
+          POSTGRES_USER: ${{ secrets.TEST_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.TEST_POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.TEST_POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
