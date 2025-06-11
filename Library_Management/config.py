@@ -9,9 +9,6 @@ class Settings(BaseSettings):
     SECRET_KEY_FP: str
     ALGORITHM: str = "HS256"
 
-    DB_USER: str
-    DB_PASSWORD: str
-    DB_NAME: str
     DATABASE_URL: str
 
     EMAIL_HOST_USER: EmailStr
