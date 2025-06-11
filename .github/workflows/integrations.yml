@@ -1,0 +1,43 @@
+name: FastAPI CI
+
+on:
+  push:
+    branches:
+      - lib
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r Library_Management/requirements.txt
+
+      - name: Set environment variables
+        run: |
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+          echo "EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}" >> $GITHUB_ENV
+          echo "EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Copy .env file
+        run: |
+          cp Library_Management/.env .env
+
+      - name: Run tests
+        working-directory: Library_Management
+        run: |
+          pytest 
+
