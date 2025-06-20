@@ -1,6 +1,6 @@
 # services/author_service.py
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from Library_Management.Repository.base import AuthorRepository
 from Library_Management.Schema.schema import Author_Created
