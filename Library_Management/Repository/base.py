@@ -1,0 +1,39 @@
+from typing import TypeVar, Generic, Type, Optional, List, Union
+from pydantic import BaseModel
+from Library_Management.models import Base
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
+ModelType = TypeVar("ModelType",bind= Base)              
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)  
+
+class BaseRepository(Generic[ModelType, CreateSchemaType]):
+    def __init__(self, model: Type[ModelType]):
+        self.model = model
+
+    async def get_all(self, db: AsyncSession) -> List[ModelType]:
+        result = await db.execute(select(self.model))
+        return result.scalars().all()
+
+    async def get_by_id(self, db: AsyncSession, id: Union[int, str]) -> Optional[ModelType]:
+        result = await db.execute(select(self.model).where(self.model.id == id))
+        return result.scalars().first()
+
+    async def create(self, db: AsyncSession, obj_in: CreateSchemaType) -> ModelType:
+        obj = self.model(**obj_in.__dict__)
+        db.add(obj)
+        await db.commit()
+        await db.refresh(obj)
+        return obj
+
+    async def delete(self, db: AsyncSession, obj: ModelType) -> None:
+        await db.delete(obj)
+        await db.commit()
+
+    async def update(self, db: AsyncSession, db_obj: ModelType, obj_in: Union[dict, BaseModel]) -> ModelType:
+        update_data = obj_in.__dict__ if isinstance(obj_in, BaseModel) else obj_in
+        for field, value in update_data.items():
+            setattr(db_obj, field, value)
+        await db.commit()
+        await db.refresh(db_obj)
+        return db_obj
