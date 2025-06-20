@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 
-ModelType = TypeVar("ModelType",bind= Base)              
+ModelType = TypeVar("ModelType",bound= Base)                # type: ignore
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)  
 
 class BaseRepository(Generic[ModelType, CreateSchemaType]):

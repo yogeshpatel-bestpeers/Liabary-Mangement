@@ -2,7 +2,7 @@
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from Library_Management.Repository.base import AuthorRepository
+from Library_Management.Repository.AuthorRepository import AuthorRepository
 from Library_Management.Schema.schema import Author_Created
 
 class AuthorService:
