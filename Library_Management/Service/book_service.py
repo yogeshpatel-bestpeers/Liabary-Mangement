@@ -13,7 +13,7 @@ class BookService:
         return await self.repo.create(db, data)
 
     async def get_books(self, db: AsyncSession):
-        books = await self.repo.get_all(db)
+        books = await self.repo.get_all(db,relationships=["category","author"])
         if not books:
             raise HTTPException(status_code=404, detail="No Books found")
         return books

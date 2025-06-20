@@ -13,7 +13,7 @@ class AuthorService:
         return await self.repo.create(db, data)
 
     async def get_authors(self, db: AsyncSession):
-        authors = await self.repo.get_all(db)
+        authors = await self.repo.get_all(db,relationships=["books"])
         if not authors:
             raise HTTPException(status_code=404, detail="No authors found")
         return authors
