@@ -1,9 +1,9 @@
 import re
 from datetime import datetime
 from typing import Optional
-
+from uuid import UUID
 from pydantic import BaseModel, ConfigDict, field_validator
-
+from typing import List
 from Library_Management.models import UserRole
 
 
@@ -80,3 +80,19 @@ class FineOut(FineBase):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+
+class BookOut(BaseModel):
+    id: UUID
+    name: str
+    quantity: int
+
+    model_config = ConfigDict(
+        from_attributes=True)
+
+class AuthorOut(BaseModel):
+    id: UUID
+    name: str
+    books: List[BookOut] = []
+
+    model_config = ConfigDict(
+        from_attributes=True)

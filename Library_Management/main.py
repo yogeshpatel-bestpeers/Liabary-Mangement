@@ -44,7 +44,7 @@ def create_app(engine):
         allow_headers=["*"],
     )
 
-    app.add_middleware(AuthenticateMiddleware)
+    # app.add_middleware(AuthenticateMiddleware)
 
     app.include_router(Author.author)
     app.include_router(Book.book)

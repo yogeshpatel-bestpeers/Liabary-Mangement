@@ -6,6 +6,11 @@ from Library_Management.Service.author_service import AuthorService
 from Library_Management import database
 from Library_Management.Schema import schema
 from Library_Management.utils import admin_required
+from sqlalchemy import select
+from Library_Management.Schema.schema import AuthorOut
+from sqlalchemy.orm import joinedload,selectinload
+from typing import List
+from Library_Management.models import Author
 
 author = APIRouter(tags=["Author Api"])
 
@@ -23,7 +28,7 @@ class AuthorView:
 
         return {"details": "Author Created Successfully", "author": new_author}
 
-    @author.get("/author/get/")
+    @author.get("/author/get/",response_model=List[AuthorOut])
     async def author_get(
         self,
         user=Depends(admin_required),
@@ -51,3 +56,4 @@ class AuthorView:
         await self.author_service.update_author(self.db,id,model)
 
         return JSONResponse(content={"detail": "Author updated successfully"},status_code=status.HTTP_202_ACCEPTED)
+

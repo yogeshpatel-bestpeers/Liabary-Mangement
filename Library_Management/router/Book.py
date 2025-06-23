@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
 from Library_Management.Service.book_service import BookService
-from Library_Management import models
+from Library_Management.Schema.schema import BookOut
 from Library_Management.database import get_db
 from Library_Management.Schema import schema
+from typing import List
 
 book = APIRouter(tags=["Book Api"])
 
@@ -23,7 +22,7 @@ class BookView:
 
         return {"details": "Book Created Successfully", "book": new_book}
 
-    @book.get("/book/get/")
+    @book.get("/book/get/",response_model=List[BookOut])
     async def book_get(self):
 
         books = await self.book_service.get_books(self.db)
