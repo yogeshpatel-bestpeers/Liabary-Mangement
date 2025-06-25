@@ -1,10 +1,13 @@
 from contextlib import asynccontextmanager
-
+import debugpy
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Base, engine
 from .middleware.authentication import AuthenticateMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi import Limiter
 from .router import (
     Author,
     Book,
@@ -54,8 +57,13 @@ def create_app(engine):
     app.include_router(authApi.auth_router)
     app.include_router(get_user.user_p)
     app.include_router(CartItem.cart)
+    limiter = Issued_Book.limiter
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     return app
 
 
 app = create_app(engine)
+
+print("🛠️ debugpy is listening on port 5678")

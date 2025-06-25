@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,Request
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -9,9 +9,13 @@ from sqlalchemy.orm import joinedload
 from Library_Management.database import get_db
 from Library_Management.models import Book, Cart, IssuedBook
 from Library_Management.utils import admin_required, user_required
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 
 from .fine import create_fine, get_fine
 
+limiter = Limiter(key_func=get_remote_address)
 issuedBook = APIRouter(tags=["Book Issue Api"])
 
 
@@ -20,7 +24,8 @@ class BokkIssueView:
     db: AsyncSession = Depends(get_db)
 
     @issuedBook.get("/admin/get/issuedBook")
-    async def get__issued_books(self, user=Depends(admin_required)):
+    @limiter.limit("1/minute")
+    async def get__issued_books(self,request:Request, user=Depends(admin_required)):
         result = await self.db.execute(
             select(IssuedBook)
             .options(joinedload(IssuedBook.user), joinedload(IssuedBook.fine))
@@ -32,7 +37,10 @@ class BokkIssueView:
         "/book/issue",
         status_code=status.HTTP_201_CREATED,
     )
-    async def issued_book(self, user=Depends(user_required)):
+    @limiter.limit("1/minute")
+    async def issued_book(self,request:Request,
+                        user=Depends(user_required)
+                        ):
 
         cart_result = await self.db.execute(select(Cart).where(Cart.user_id == user.id))
         cart_items = cart_result.scalars().all()

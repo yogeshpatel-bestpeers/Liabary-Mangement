@@ -21,11 +21,14 @@ services:
     
 
   web:
-    image: lib-latest:latest
+    build : .
     env_file:
       - .env
     ports:
       - "8000:8000"
+      - "5678:5678"
+    volumes:
+      - .:/code
     depends_on:
       db:
         condition: service_healthy
