@@ -30,4 +30,6 @@ class BookService:
             raise HTTPException(status_code=404, detail="Book not found")
         return await self.repo.update(db, book, data)
     
+    async def search_books_by_name(self, db, title: str):
+        return await self.repo.search_by_field(db, field_name="name", value=title)  
     

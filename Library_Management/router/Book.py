@@ -42,3 +42,8 @@ class BookView:
         book = await self.book_service.update_book(self.db,id,model)
 
         return book
+
+    @book.get("/book/search/", response_model=List[BookOut])
+    async def search_book_by_name(self, title: str):
+        books = await self.book_service.search_books_by_name(self.db, title)
+        return books

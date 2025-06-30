@@ -52,7 +52,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType]):
         relationships: Optional[List[str]] = None
     ) -> List[ModelType]:
         field = getattr(self.model, field_name)
-        stmt = select(self.model).where(field.ilike(f"%{value}%"))
+        stmt = select(self.model).where(field.ilike(f"{value}%"))
 
         if relationships:
             for rel in relationships:
