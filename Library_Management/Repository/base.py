@@ -46,3 +46,17 @@ class BaseRepository(Generic[ModelType, CreateSchemaType]):
         await db.commit()
         await db.refresh(db_obj)
         return db_obj
+    
+        
+    async def search_by_field( self,  db: AsyncSession,   field_name: str,   value: str,
+        relationships: Optional[List[str]] = None
+    ) -> List[ModelType]:
+        field = getattr(self.model, field_name)
+        stmt = select(self.model).where(field.ilike(f"%{value}%"))
+
+        if relationships:
+            for rel in relationships:
+                stmt = stmt.options(joinedload(getattr(self.model, rel)))
+
+        result = await db.execute(stmt)
+        return result.scalars().all()

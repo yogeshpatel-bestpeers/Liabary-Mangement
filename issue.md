@@ -18,15 +18,15 @@ How to Fix
   The root of the issue was trying to use async with test_app, but FastAPI doesn't implement __aenter__/__aexit__. Instead, for testing, the correct approach is to use httpx.AsyncClient with ASGITransport, which allows me to send HTTP requests to the app in-memory, without spinning up a server.
 
   So the fix was to create an ASGITransport using the app, and pass that to the AsyncClient. That way, I can simulate real HTTP requests and get full request/response behavior in tests, while avoiding misuse of the app object.”
-
-
-
+-------------------------------------------------------------------------------------------
 
 httpx.AsyncClient: An HTTP client for making async requests, similar to requests but async.
+-----------------------------------------------------------------------------------------------
 
 ASGITransport: A special transport for httpx that allows requests to be made in memory directly to an ASGI app (like FastAPI), without needing to spin up an actual server
 
 In tests, I use ASGITransport(app=...) from httpx to simulate HTTP requests directly to the FastAPI app without running a real server.
+-----------------------------------------------------------------------------------------------
 This allows me to write async integration tests that are faster, safer, and don't rely on network setup.
 It hooks into FastAPI's ASGI interface, enabling true end-to-end behavior while staying fully in memory.
 When paired with AsyncClient, this setup gives me a real request/response cycle — great for testing routes, middleware, and auth flows.
@@ -36,11 +36,28 @@ AsyncClient is an async HTTP client from httpx.
 Since it uses ASGITransport, it doesn't make network calls — it routes directly to the FastAPI app.
 
 A network call is any request that goes over a network connection (like HTTP) from a client (browser, Postman, or code) to a server.
+-----------------------------------------------------------------------------------------------
 
 The @lru_cache() decorator in Python is used for caching function results, meaning once a function is called with a particular set of arguments, its result is stored and reused for subsequent calls with the same arguments. This boosts performance by avoiding redundant calculations, especially for expensive functions.
 
 However, if settings or configurations need to be dynamically re-evaluated (e.g., per request or based on context changes), caching can lead to outdated or incorrect results. Since @lru_cache() stores previous outputs, updates to settings won't trigger re-evaluation—they'll just return cached values.
+-----------------------------------------------------------------------------------------------
 
-The @lru_cache() decorator in Python is used for caching function results, meaning once a function is called with a particular set of arguments, its result is stored and reused for subsequent calls with the same arguments. This boosts performance by avoiding redundant calculations, especially for expensive functions.
+sync def verify_token(x_token: Annotated[str, Header()]):
+    if x_token != "fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
 
-However, if settings or configurations need to be dynamically re-evaluated (e.g., per request or based on context changes), caching can lead to outdated or incorrect results. Since @lru_cache() stores previous outputs, updates to settings won't trigger re-evaluation—they'll just return cached values.
+sync def verify_token(x_token:  Header() = Depend()):
+    if x_token != "fake-super-secret-token":
+        raise HTTPException(status_code=400, detail="X-Token header invalid")
+-----------------------------------------------------------------------------------------------
+
+def get_cars(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Car).offset(skip).limit(limit).all()
+
+async def get_cars(db: AsyncSession, skip: int = 0, limit: int = 100):
+    result = await db.execute(
+        select(models.Car).offset(skip).limit(limit)
+    )
+    return result.scalars().all()
+-----------------------------------------------------------------------------------------------

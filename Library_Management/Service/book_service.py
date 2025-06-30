@@ -29,3 +29,5 @@ class BookService:
         if not book:
             raise HTTPException(status_code=404, detail="Book not found")
         return await self.repo.update(db, book, data)
+    
+    
